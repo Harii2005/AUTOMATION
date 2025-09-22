@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { 
-  Home, 
-  Calendar, 
-  MessageSquare, 
-  Users, 
-  Menu, 
-  X, 
-  LogOut, 
+import React, { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import {
+  Home,
+  Calendar,
+  MessageSquare,
+  Users,
+  Menu,
+  X,
+  LogOut,
   Settings,
   User,
-  Bell
-} from 'lucide-react';
+  Bell,
+} from "lucide-react";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -22,15 +22,15 @@ const Navbar = () => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Calendar', href: '/calendar', icon: Calendar },
-    { name: 'AI Assistant', href: '/chat', icon: MessageSquare },
-    { name: 'Accounts', href: '/accounts', icon: Users },
+    { name: "Dashboard", href: "/dashboard", icon: Home },
+    { name: "Calendar", href: "/calendar", icon: Calendar },
+    { name: "AI Assistant", href: "/chat", icon: MessageSquare },
+    { name: "Accounts", href: "/accounts", icon: Users },
   ];
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   const isActive = (href) => location.pathname === href;
@@ -46,10 +46,12 @@ const Navbar = () => {
                 <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center mr-3">
                   <span className="text-white font-bold text-lg">S</span>
                 </div>
-                <span className="text-xl font-bold text-gray-900">SocialAI</span>
+                <span className="text-xl font-bold text-gray-900">
+                  SocialAI
+                </span>
               </Link>
             </div>
-            
+
             {/* Desktop navigation */}
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
               {navigation.map((item) => {
@@ -60,8 +62,8 @@ const Navbar = () => {
                     to={item.href}
                     className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
                       isActive(item.href)
-                        ? 'border-blue-500 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                        ? "border-blue-500 text-gray-900"
+                        : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                     }`}
                   >
                     <Icon className="w-4 h-4 mr-2" />
@@ -90,7 +92,7 @@ const Navbar = () => {
                   <User className="w-4 h-4 text-gray-600" />
                 </div>
                 <span className="text-gray-700 font-medium">
-                  {user?.firstName || 'User'}
+                  {user?.firstName || "User"}
                 </span>
               </button>
 
@@ -104,12 +106,12 @@ const Navbar = () => {
                       </p>
                       <p className="text-sm text-gray-500">{user?.email}</p>
                     </div>
-                    
+
                     <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
                       <Settings className="w-4 h-4 mr-2" />
                       Settings
                     </button>
-                    
+
                     <button
                       onClick={handleLogout}
                       className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
@@ -151,8 +153,8 @@ const Navbar = () => {
                   to={item.href}
                   className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
                     isActive(item.href)
-                      ? 'bg-blue-50 border-blue-500 text-blue-700'
-                      : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+                      ? "bg-blue-50 border-blue-500 text-blue-700"
+                      : "border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700"
                   }`}
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -164,7 +166,7 @@ const Navbar = () => {
               );
             })}
           </div>
-          
+
           <div className="pt-4 pb-3 border-t border-gray-200">
             <div className="flex items-center px-4">
               <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
@@ -174,7 +176,9 @@ const Navbar = () => {
                 <div className="text-base font-medium text-gray-800">
                   {user?.firstName} {user?.lastName}
                 </div>
-                <div className="text-sm font-medium text-gray-500">{user?.email}</div>
+                <div className="text-sm font-medium text-gray-500">
+                  {user?.email}
+                </div>
               </div>
             </div>
             <div className="mt-3 space-y-1">

@@ -1,20 +1,20 @@
-import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { authAPI } from '../utils/api';
+import React, { createContext, useContext, useReducer, useEffect } from "react";
+import { authAPI } from "../utils/api";
 
 const AuthContext = createContext();
 
 const initialState = {
   user: null,
-  token: localStorage.getItem('token'),
+  token: localStorage.getItem("token"),
   isLoading: true,
   isAuthenticated: false,
 };
 
 const authReducer = (state, action) => {
   switch (action.type) {
-    case 'LOGIN_SUCCESS':
-      localStorage.setItem('token', action.payload.token);
-      localStorage.setItem('user', JSON.stringify(action.payload.user));
+    case "LOGIN_SUCCESS":
+      localStorage.setItem("token", action.payload.token);
+      localStorage.setItem("user", JSON.stringify(action.payload.user));
       return {
         ...state,
         user: action.payload.user,
@@ -22,9 +22,9 @@ const authReducer = (state, action) => {
         isAuthenticated: true,
         isLoading: false,
       };
-    case 'LOGOUT':
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+    case "LOGOUT":
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
       return {
         ...state,
         user: null,
@@ -32,16 +32,16 @@ const authReducer = (state, action) => {
         isAuthenticated: false,
         isLoading: false,
       };
-    case 'LOAD_USER':
+    case "LOAD_USER":
       return {
         ...state,
         user: action.payload,
         isAuthenticated: true,
         isLoading: false,
       };
-    case 'AUTH_ERROR':
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+    case "AUTH_ERROR":
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
       return {
         ...state,
         user: null,
@@ -49,7 +49,7 @@ const authReducer = (state, action) => {
         isAuthenticated: false,
         isLoading: false,
       };
-    case 'SET_LOADING':
+    case "SET_LOADING":
       return {
         ...state,
         isLoading: action.payload,
@@ -65,16 +65,16 @@ export const AuthProvider = ({ children }) => {
   // Load user on app start
   useEffect(() => {
     const loadUser = async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (token) {
         try {
           const response = await authAPI.getMe();
-          dispatch({ type: 'LOAD_USER', payload: response.data.user });
+          dispatch({ type: "LOAD_USER", payload: response.data.user });
         } catch (error) {
-          dispatch({ type: 'AUTH_ERROR' });
+          dispatch({ type: "AUTH_ERROR" });
         }
       } else {
-        dispatch({ type: 'SET_LOADING', payload: false });
+        dispatch({ type: "SET_LOADING", payload: false });
       }
     };
     loadUser();
@@ -84,7 +84,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.login(credentials);
       dispatch({
-        type: 'LOGIN_SUCCESS',
+        type: "LOGIN_SUCCESS",
         payload: {
           user: response.data.user,
           token: response.data.token,
@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.error || 'Login failed',
+        error: error.response?.data?.error || "Login failed",
       };
     }
   };
@@ -103,7 +103,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.register(userData);
       dispatch({
-        type: 'LOGIN_SUCCESS',
+        type: "LOGIN_SUCCESS",
         payload: {
           user: response.data.user,
           token: response.data.token,
@@ -113,13 +113,13 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       return {
         success: false,
-        error: error.response?.data?.error || 'Registration failed',
+        error: error.response?.data?.error || "Registration failed",
       };
     }
   };
 
   const logout = () => {
-    dispatch({ type: 'LOGOUT' });
+    dispatch({ type: "LOGOUT" });
   };
 
   const value = {
@@ -135,7 +135,7 @@ export const AuthProvider = ({ children }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };

@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '../utils/api';
-import { 
-  Plus, 
-  Check, 
-  ExternalLink, 
-  Users, 
+import React, { useState, useEffect } from "react";
+import { api } from "../utils/api";
+import {
+  Plus,
+  Check,
+  ExternalLink,
+  Users,
   Settings,
   AlertCircle,
   Shield,
-  Unlink
-} from 'lucide-react';
+  Unlink,
+} from "lucide-react";
 
 const SocialAccounts = () => {
   const [accounts, setAccounts] = useState([]);
@@ -18,47 +18,47 @@ const SocialAccounts = () => {
 
   const platforms = [
     {
-      id: 'facebook',
-      name: 'Facebook',
-      icon: '📘',
-      color: 'bg-blue-600',
-      description: 'Connect your Facebook page to schedule posts'
+      id: "facebook",
+      name: "Facebook",
+      icon: "📘",
+      color: "bg-blue-600",
+      description: "Connect your Facebook page to schedule posts",
     },
     {
-      id: 'twitter',
-      name: 'Twitter',
-      icon: '🐦',
-      color: 'bg-sky-500',
-      description: 'Share tweets and engage with your audience'
+      id: "twitter",
+      name: "Twitter",
+      icon: "🐦",
+      color: "bg-sky-500",
+      description: "Share tweets and engage with your audience",
     },
     {
-      id: 'instagram',
-      name: 'Instagram',
-      icon: '📷',
-      color: 'bg-pink-600',
-      description: 'Post photos and stories to Instagram'
+      id: "instagram",
+      name: "Instagram",
+      icon: "📷",
+      color: "bg-pink-600",
+      description: "Post photos and stories to Instagram",
     },
     {
-      id: 'linkedin',
-      name: 'LinkedIn',
-      icon: '💼',
-      color: 'bg-blue-700',
-      description: 'Share professional content on LinkedIn'
+      id: "linkedin",
+      name: "LinkedIn",
+      icon: "💼",
+      color: "bg-blue-700",
+      description: "Share professional content on LinkedIn",
     },
     {
-      id: 'youtube',
-      name: 'YouTube',
-      icon: '🎥',
-      color: 'bg-red-600',
-      description: 'Upload and schedule YouTube videos'
+      id: "youtube",
+      name: "YouTube",
+      icon: "🎥",
+      color: "bg-red-600",
+      description: "Upload and schedule YouTube videos",
     },
     {
-      id: 'tiktok',
-      name: 'TikTok',
-      icon: '🎵',
-      color: 'bg-black',
-      description: 'Share short-form videos on TikTok'
-    }
+      id: "tiktok",
+      name: "TikTok",
+      icon: "🎵",
+      color: "bg-black",
+      description: "Share short-form videos on TikTok",
+    },
   ];
 
   useEffect(() => {
@@ -70,7 +70,7 @@ const SocialAccounts = () => {
       const response = await api.getSocialAccounts();
       setAccounts(response.data);
     } catch (error) {
-      console.error('Error fetching accounts:', error);
+      console.error("Error fetching accounts:", error);
     } finally {
       setLoading(false);
     }
@@ -78,11 +78,11 @@ const SocialAccounts = () => {
 
   const handleConnect = async (platform) => {
     setConnectingPlatform(platform.id);
-    
+
     try {
       // In a real implementation, this would redirect to OAuth flow
       const response = await api.connectSocialAccount(platform.id);
-      
+
       if (response.data.success) {
         // Simulate successful connection
         const newAccount = {
@@ -93,13 +93,13 @@ const SocialAccounts = () => {
           isConnected: true,
           connectedAt: new Date().toISOString(),
           followers: Math.floor(Math.random() * 10000) + 1000,
-          avatar: null
+          avatar: null,
         };
-        
-        setAccounts(prev => [...prev, newAccount]);
+
+        setAccounts((prev) => [...prev, newAccount]);
       }
     } catch (error) {
-      console.error('Error connecting account:', error);
+      console.error("Error connecting account:", error);
     } finally {
       setConnectingPlatform(null);
     }
@@ -108,14 +108,16 @@ const SocialAccounts = () => {
   const handleDisconnect = async (accountId) => {
     try {
       await api.disconnectSocialAccount(accountId);
-      setAccounts(prev => prev.filter(account => account.id !== accountId));
+      setAccounts((prev) => prev.filter((account) => account.id !== accountId));
     } catch (error) {
-      console.error('Error disconnecting account:', error);
+      console.error("Error disconnecting account:", error);
     }
   };
 
   const getConnectedAccount = (platformId) => {
-    return accounts.find(account => account.platform === platformId && account.isConnected);
+    return accounts.find(
+      (account) => account.platform === platformId && account.isConnected
+    );
   };
 
   const AccountCard = ({ platform }) => {
@@ -127,11 +129,15 @@ const SocialAccounts = () => {
       <div className="bg-white rounded-lg shadow border border-gray-200 p-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center">
-            <div className={`w-12 h-12 rounded-lg ${platform.color} flex items-center justify-center text-white text-xl mr-4`}>
+            <div
+              className={`w-12 h-12 rounded-lg ${platform.color} flex items-center justify-center text-white text-xl mr-4`}
+            >
               {platform.icon}
             </div>
             <div>
-              <h3 className="text-lg font-medium text-gray-900">{platform.name}</h3>
+              <h3 className="text-lg font-medium text-gray-900">
+                {platform.name}
+              </h3>
               <p className="text-sm text-gray-500">{platform.description}</p>
               {isConnected && (
                 <div className="mt-2 flex items-center text-sm text-gray-600">
@@ -141,7 +147,7 @@ const SocialAccounts = () => {
               )}
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             {isConnected ? (
               <>
@@ -184,7 +190,9 @@ const SocialAccounts = () => {
             <div className="flex items-center justify-between text-sm">
               <div>
                 <span className="text-gray-500">Connected as:</span>
-                <span className="ml-1 font-medium text-gray-900">{connectedAccount.username}</span>
+                <span className="ml-1 font-medium text-gray-900">
+                  {connectedAccount.username}
+                </span>
               </div>
               <div className="flex space-x-2">
                 <button className="flex items-center text-gray-600 hover:text-gray-900">
@@ -211,7 +219,9 @@ const SocialAccounts = () => {
     );
   }
 
-  const connectedCount = accounts.filter(account => account.isConnected).length;
+  const connectedCount = accounts.filter(
+    (account) => account.isConnected
+  ).length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -230,7 +240,8 @@ const SocialAccounts = () => {
               </div>
               <div className="flex items-center space-x-4">
                 <div className="text-sm text-gray-600">
-                  <span className="font-medium">{connectedCount}</span> of {platforms.length} accounts connected
+                  <span className="font-medium">{connectedCount}</span> of{" "}
+                  {platforms.length} accounts connected
                 </div>
               </div>
             </div>
@@ -246,29 +257,42 @@ const SocialAccounts = () => {
               <div className="flex items-center">
                 <Users className="h-8 w-8 text-blue-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Total Followers</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Total Followers
+                  </p>
                   <p className="text-2xl font-semibold text-gray-900">
-                    {accounts.reduce((sum, account) => sum + (account.followers || 0), 0).toLocaleString()}
+                    {accounts
+                      .reduce(
+                        (sum, account) => sum + (account.followers || 0),
+                        0
+                      )
+                      .toLocaleString()}
                   </p>
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
                 <Check className="h-8 w-8 text-green-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Connected Accounts</p>
-                  <p className="text-2xl font-semibold text-gray-900">{connectedCount}</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Connected Accounts
+                  </p>
+                  <p className="text-2xl font-semibold text-gray-900">
+                    {connectedCount}
+                  </p>
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
                 <Shield className="h-8 w-8 text-purple-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Security Status</p>
+                  <p className="text-sm font-medium text-gray-500">
+                    Security Status
+                  </p>
                   <p className="text-2xl font-semibold text-gray-900">Secure</p>
                 </div>
               </div>
@@ -281,9 +305,13 @@ const SocialAccounts = () => {
           <div className="flex items-start">
             <Shield className="h-5 w-5 text-blue-600 mt-0.5 mr-3" />
             <div>
-              <h3 className="text-sm font-medium text-blue-900">Your data is secure</h3>
+              <h3 className="text-sm font-medium text-blue-900">
+                Your data is secure
+              </h3>
               <p className="mt-1 text-sm text-blue-800">
-                We use OAuth 2.0 for secure authentication. We never store your social media passwords and only access what you explicitly authorize.
+                We use OAuth 2.0 for secure authentication. We never store your
+                social media passwords and only access what you explicitly
+                authorize.
               </p>
             </div>
           </div>
@@ -301,11 +329,21 @@ const SocialAccounts = () => {
           <div className="flex items-start">
             <AlertCircle className="h-5 w-5 text-gray-600 mt-0.5 mr-3" />
             <div>
-              <h3 className="text-sm font-medium text-gray-900">Need help connecting accounts?</h3>
+              <h3 className="text-sm font-medium text-gray-900">
+                Need help connecting accounts?
+              </h3>
               <div className="mt-2 text-sm text-gray-600 space-y-1">
-                <p>• Make sure you have admin access to the social media accounts you want to connect</p>
-                <p>• Some platforms may require business accounts for API access</p>
-                <p>• Check your browser's popup blocker if the connection window doesn't appear</p>
+                <p>
+                  • Make sure you have admin access to the social media accounts
+                  you want to connect
+                </p>
+                <p>
+                  • Some platforms may require business accounts for API access
+                </p>
+                <p>
+                  • Check your browser's popup blocker if the connection window
+                  doesn't appear
+                </p>
                 <p>• Contact support if you continue to experience issues</p>
               </div>
               <div className="mt-4">

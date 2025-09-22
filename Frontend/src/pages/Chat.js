@@ -1,19 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { api } from '../utils/api';
-import { 
-  Send, 
-  Bot, 
-  User, 
-  Loader, 
-  Copy, 
+import React, { useState, useEffect, useRef } from "react";
+import { api } from "../utils/api";
+import {
+  Send,
+  Bot,
+  User,
+  Loader,
+  Copy,
   Check,
   Sparkles,
-  MessageSquare
-} from 'lucide-react';
+  MessageSquare,
+} from "lucide-react";
 
 const Chat = () => {
   const [messages, setMessages] = useState([]);
-  const [inputMessage, setInputMessage] = useState('');
+  const [inputMessage, setInputMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [copiedMessage, setCopiedMessage] = useState(null);
   const messagesEndRef = useRef(null);
@@ -23,10 +23,11 @@ const Chat = () => {
     setMessages([
       {
         id: 1,
-        content: "Hello! I'm your AI assistant for social media content creation. I can help you write engaging posts, suggest hashtags, create captions, and brainstorm content ideas. What would you like to work on today?",
+        content:
+          "Hello! I'm your AI assistant for social media content creation. I can help you write engaging posts, suggest hashtags, create captions, and brainstorm content ideas. What would you like to work on today?",
         isBot: true,
-        timestamp: new Date()
-      }
+        timestamp: new Date(),
+      },
     ]);
   }, []);
 
@@ -35,7 +36,7 @@ const Chat = () => {
   }, [messages]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleSendMessage = async (e) => {
@@ -46,36 +47,37 @@ const Chat = () => {
       id: Date.now(),
       content: inputMessage,
       isBot: false,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
+    setMessages((prev) => [...prev, userMessage]);
+    setInputMessage("");
     setIsLoading(true);
 
     try {
       const response = await api.chatWithAI(inputMessage);
-      
+
       const botMessage = {
         id: Date.now() + 1,
         content: response.data.response,
         isBot: true,
-        timestamp: new Date()
+        timestamp: new Date(),
       };
 
-      setMessages(prev => [...prev, botMessage]);
+      setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
-      console.error('Error sending message:', error);
-      
+      console.error("Error sending message:", error);
+
       const errorMessage = {
         id: Date.now() + 1,
-        content: "I'm sorry, I'm having trouble responding right now. Please try again in a moment.",
+        content:
+          "I'm sorry, I'm having trouble responding right now. Please try again in a moment.",
         isBot: true,
         timestamp: new Date(),
-        isError: true
+        isError: true,
       };
 
-      setMessages(prev => [...prev, errorMessage]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -87,7 +89,7 @@ const Chat = () => {
       setCopiedMessage(messageId);
       setTimeout(() => setCopiedMessage(null), 2000);
     } catch (error) {
-      console.error('Failed to copy message:', error);
+      console.error("Failed to copy message:", error);
     }
   };
 
@@ -97,7 +99,7 @@ const Chat = () => {
     "Suggest hashtags for a tech startup",
     "Write a LinkedIn post about professional growth",
     "Create a Twitter thread about remote work",
-    "Write a Facebook post for a small business"
+    "Write a Facebook post for a small business",
   ];
 
   const handleQuickPrompt = (prompt) => {
@@ -106,36 +108,51 @@ const Chat = () => {
 
   const MessageBubble = ({ message }) => {
     const isBot = message.isBot;
-    
+
     return (
-      <div className={`flex ${isBot ? 'justify-start' : 'justify-end'} mb-4`}>
-        <div className={`flex items-start space-x-2 max-w-xs lg:max-w-md xl:max-w-lg ${isBot ? '' : 'flex-row-reverse space-x-reverse'}`}>
-          <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-            isBot ? 'bg-blue-100' : 'bg-gray-100'
-          }`}>
+      <div className={`flex ${isBot ? "justify-start" : "justify-end"} mb-4`}>
+        <div
+          className={`flex items-start space-x-2 max-w-xs lg:max-w-md xl:max-w-lg ${
+            isBot ? "" : "flex-row-reverse space-x-reverse"
+          }`}
+        >
+          <div
+            className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+              isBot ? "bg-blue-100" : "bg-gray-100"
+            }`}
+          >
             {isBot ? (
               <Bot className="w-5 h-5 text-blue-600" />
             ) : (
               <User className="w-5 h-5 text-gray-600" />
             )}
           </div>
-          
-          <div className={`relative group ${isBot ? 'mr-8' : 'ml-8'}`}>
-            <div className={`px-4 py-2 rounded-lg ${
-              isBot 
-                ? message.isError 
-                  ? 'bg-red-50 text-red-800 border border-red-200' 
-                  : 'bg-white border border-gray-200 shadow-sm'
-                : 'bg-blue-600 text-white'
-            }`}>
+
+          <div className={`relative group ${isBot ? "mr-8" : "ml-8"}`}>
+            <div
+              className={`px-4 py-2 rounded-lg ${
+                isBot
+                  ? message.isError
+                    ? "bg-red-50 text-red-800 border border-red-200"
+                    : "bg-white border border-gray-200 shadow-sm"
+                  : "bg-blue-600 text-white"
+              }`}
+            >
               <p className="text-sm whitespace-pre-wrap">{message.content}</p>
             </div>
-            
-            <div className={`flex items-center mt-1 space-x-2 ${isBot ? '' : 'justify-end'}`}>
+
+            <div
+              className={`flex items-center mt-1 space-x-2 ${
+                isBot ? "" : "justify-end"
+              }`}
+            >
               <span className="text-xs text-gray-500">
-                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {message.timestamp.toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </span>
-              
+
               {isBot && !message.isError && (
                 <button
                   onClick={() => handleCopyMessage(message.content, message.id)}
@@ -183,7 +200,9 @@ const Chat = () => {
           <div className="flex-1 overflow-y-auto p-6">
             {messages.length === 1 && (
               <div className="mb-6">
-                <h3 className="text-sm font-medium text-gray-900 mb-3">Quick prompts to get started:</h3>
+                <h3 className="text-sm font-medium text-gray-900 mb-3">
+                  Quick prompts to get started:
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {quickPrompts.map((prompt, index) => (
                     <button
@@ -197,11 +216,11 @@ const Chat = () => {
                 </div>
               </div>
             )}
-            
+
             {messages.map((message) => (
               <MessageBubble key={message.id} message={message} />
             ))}
-            
+
             {isLoading && (
               <div className="flex justify-start mb-4">
                 <div className="flex items-start space-x-2">
@@ -211,13 +230,15 @@ const Chat = () => {
                   <div className="bg-white border border-gray-200 shadow-sm px-4 py-2 rounded-lg">
                     <div className="flex items-center space-x-2">
                       <Loader className="w-4 h-4 animate-spin text-blue-600" />
-                      <span className="text-sm text-gray-600">AI is thinking...</span>
+                      <span className="text-sm text-gray-600">
+                        AI is thinking...
+                      </span>
                     </div>
                   </div>
                 </div>
               </div>
             )}
-            
+
             <div ref={messagesEndRef} />
           </div>
 
@@ -250,12 +271,22 @@ const Chat = () => {
           <div className="flex items-start">
             <MessageSquare className="h-5 w-5 text-blue-600 mt-0.5 mr-3" />
             <div>
-              <h3 className="text-sm font-medium text-blue-900">Tips for better results:</h3>
+              <h3 className="text-sm font-medium text-blue-900">
+                Tips for better results:
+              </h3>
               <ul className="mt-2 text-sm text-blue-800 space-y-1">
                 <li>• Be specific about your target audience and platform</li>
-                <li>• Mention the tone you want (professional, casual, funny, etc.)</li>
-                <li>• Include relevant keywords or topics you want to focus on</li>
-                <li>• Ask for specific types of content (captions, hashtags, full posts)</li>
+                <li>
+                  • Mention the tone you want (professional, casual, funny,
+                  etc.)
+                </li>
+                <li>
+                  • Include relevant keywords or topics you want to focus on
+                </li>
+                <li>
+                  • Ask for specific types of content (captions, hashtags, full
+                  posts)
+                </li>
               </ul>
             </div>
           </div>
