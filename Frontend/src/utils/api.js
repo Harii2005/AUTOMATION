@@ -88,6 +88,12 @@ export const postsAPI = {
 
 // Combined API object for easier imports
 export const apiClient = {
+  // HTTP methods
+  get: (url) => api.get(url),
+  post: (url, data) => api.post(url, data),
+  put: (url, data) => api.put(url, data),
+  delete: (url) => api.delete(url),
+
   // Auth methods
   register: (userData) => authAPI.register(userData),
   login: (credentials) => authAPI.login(credentials),

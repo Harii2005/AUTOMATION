@@ -27,7 +27,7 @@ const Login = () => {
     setError("");
     setIsLoading(true);
 
-    const result = await login(formData.email, formData.password);
+    const result = await login(formData);
 
     setIsLoading(false);
 

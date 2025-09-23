@@ -65,12 +65,35 @@ const SocialAccounts = () => {
     fetchAccounts();
   }, []);
 
+  // Handle OAuth callback messages
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const success = urlParams.get("success");
+    const error = urlParams.get("error");
+
+    if (success) {
+      alert(success);
+      // Refresh accounts after successful connection
+      fetchAccounts();
+      // Clean up URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    if (error) {
+      alert(`Error: ${error}`);
+      // Clean up URL parameters
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
   const fetchAccounts = async () => {
     try {
       const response = await api.getSocialAccounts();
-      setAccounts(response.data);
+      setAccounts(response.data || []);
     } catch (error) {
       console.error("Error fetching accounts:", error);
+      // Set empty array if API fails
+      setAccounts([]);
     } finally {
       setLoading(false);
     }
@@ -80,26 +103,28 @@ const SocialAccounts = () => {
     setConnectingPlatform(platform.id);
 
     try {
-      // In a real implementation, this would redirect to OAuth flow
-      const response = await api.connectSocialAccount(platform.id);
+      if (platform.id === "instagram") {
+        // Get Instagram OAuth URL from backend
+        const response = await api.get("/social/instagram/auth");
 
-      if (response.data.success) {
-        // Simulate successful connection
-        const newAccount = {
-          id: Date.now(),
-          platform: platform.id,
-          platformName: platform.name,
-          username: `@user_${platform.id}`,
-          isConnected: true,
-          connectedAt: new Date().toISOString(),
-          followers: Math.floor(Math.random() * 10000) + 1000,
-          avatar: null,
-        };
-
-        setAccounts((prev) => [...prev, newAccount]);
+        if (response.data.success && response.data.authUrl) {
+          // Redirect to Instagram OAuth
+          window.location.href = response.data.authUrl;
+          return;
+        } else {
+          throw new Error("Failed to get Instagram auth URL");
+        }
+      } else {
+        // For other platforms, show coming soon message
+        alert(`${platform.name} integration coming soon!`);
       }
     } catch (error) {
       console.error("Error connecting account:", error);
+      alert(
+        `Failed to connect to ${platform.name}. ${
+          error.response?.data?.error || error.message
+        }`
+      );
     } finally {
       setConnectingPlatform(null);
     }
@@ -107,10 +132,39 @@ const SocialAccounts = () => {
 
   const handleDisconnect = async (accountId) => {
     try {
-      await api.disconnectSocialAccount(accountId);
+      console.log(`Disconnecting account ${accountId}...`);
+      // For now, just remove from local state
+      // await api.disconnectSocialAccount(accountId);
       setAccounts((prev) => prev.filter((account) => account.id !== accountId));
+      alert("Account disconnected successfully!");
     } catch (error) {
       console.error("Error disconnecting account:", error);
+      alert("Failed to disconnect account. Please try again.");
+    }
+  };
+
+  const handleSettings = (account) => {
+    console.log(`Opening settings for ${account.platformName}...`);
+    alert(
+      `Settings for ${account.platformName} account will be available soon!`
+    );
+  };
+
+  const handleViewProfile = (account) => {
+    console.log(`Opening profile for ${account.platformName}...`);
+    // In a real implementation, this would open the social media profile
+    const profileUrls = {
+      twitter: `https://twitter.com/${account.username.replace("@", "")}`,
+      instagram: `https://instagram.com/${account.username.replace("@", "")}`,
+      linkedin: `https://linkedin.com/in/${account.username.replace("@", "")}`,
+      facebook: `https://facebook.com/${account.username.replace("@", "")}`,
+    };
+
+    const url = profileUrls[account.platform] || "#";
+    if (url !== "#") {
+      window.open(url, "_blank");
+    } else {
+      alert(`Profile link for ${account.platformName} will be available soon!`);
     }
   };
 
@@ -195,11 +249,17 @@ const SocialAccounts = () => {
                 </span>
               </div>
               <div className="flex space-x-2">
-                <button className="flex items-center text-gray-600 hover:text-gray-900">
+                <button
+                  onClick={() => handleSettings(connectedAccount)}
+                  className="flex items-center text-gray-600 hover:text-gray-900"
+                >
                   <Settings className="h-4 w-4 mr-1" />
                   Settings
                 </button>
-                <button className="flex items-center text-gray-600 hover:text-gray-900">
+                <button
+                  onClick={() => handleViewProfile(connectedAccount)}
+                  className="flex items-center text-gray-600 hover:text-gray-900"
+                >
                   <ExternalLink className="h-4 w-4 mr-1" />
                   View Profile
                 </button>

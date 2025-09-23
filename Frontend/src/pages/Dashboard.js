@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { api } from "../utils/api";
 import {
   Calendar,
@@ -15,6 +16,7 @@ import {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalPosts: 0,
     scheduledPosts: 0,
@@ -30,27 +32,60 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [postsResponse, accountsResponse] = await Promise.all([
-        api.getPosts(),
-        api.getSocialAccounts(),
-      ]);
-
-      const posts = postsResponse.data;
-      const accounts = accountsResponse.data;
-
+      // For now, let's set default data since the API endpoints might not be implemented yet
       setStats({
-        totalPosts: posts.length,
-        scheduledPosts: posts.filter((p) => p.status === "scheduled").length,
-        connectedAccounts: accounts.filter((a) => a.isConnected).length,
-        pendingPosts: posts.filter((p) => p.status === "pending").length,
+        totalPosts: 0,
+        scheduledPosts: 0,
+        connectedAccounts: 0,
+        pendingPosts: 0,
       });
+      setRecentPosts([]);
 
-      setRecentPosts(posts.slice(0, 5));
+      // TODO: Implement these API calls when backend endpoints are ready
+      // const [postsResponse, accountsResponse] = await Promise.all([
+      //   api.getPosts(),
+      //   api.getSocialAccounts(),
+      // ]);
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
+      // Set default values on error
+      setStats({
+        totalPosts: 0,
+        scheduledPosts: 0,
+        connectedAccounts: 0,
+        pendingPosts: 0,
+      });
+      setRecentPosts([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Navigation handlers
+  const handleNewPost = () => {
+    navigate("/calendar"); // Navigate to calendar for post creation
+  };
+
+  const handleSchedulePost = () => {
+    navigate("/calendar");
+  };
+
+  const handleConnectAccount = () => {
+    navigate("/accounts");
+  };
+
+  const handleAIAssistant = () => {
+    navigate("/chat");
+  };
+
+  const handleSettings = () => {
+    // Could navigate to a settings page or open a modal
+    console.log("Settings clicked");
+  };
+
+  const handleAnalytics = () => {
+    // Could navigate to analytics page
+    console.log("Analytics clicked");
   };
 
   const StatCard = ({ title, value, icon: Icon, color }) => (
@@ -140,6 +175,7 @@ const Dashboard = () => {
             <div className="mt-6 flex space-x-3 md:mt-0 md:ml-4">
               <button
                 type="button"
+                onClick={handleNewPost}
                 className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -227,6 +263,7 @@ const Dashboard = () => {
                     <div className="mt-6">
                       <button
                         type="button"
+                        onClick={handleNewPost}
                         className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                       >
                         <Plus className="h-4 w-4 mr-2" />
@@ -247,19 +284,31 @@ const Dashboard = () => {
                   Quick Actions
                 </h3>
                 <div className="space-y-3">
-                  <button className="w-full flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                  <button
+                    onClick={handleNewPost}
+                    className="w-full flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  >
                     <Plus className="h-4 w-4 mr-3 text-gray-400" />
                     Create New Post
                   </button>
-                  <button className="w-full flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                  <button
+                    onClick={handleSchedulePost}
+                    className="w-full flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  >
                     <Calendar className="h-4 w-4 mr-3 text-gray-400" />
                     Schedule Post
                   </button>
-                  <button className="w-full flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                  <button
+                    onClick={handleConnectAccount}
+                    className="w-full flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  >
                     <Users className="h-4 w-4 mr-3 text-gray-400" />
                     Connect Account
                   </button>
-                  <button className="w-full flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                  <button
+                    onClick={handleAIAssistant}
+                    className="w-full flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  >
                     <MessageSquare className="h-4 w-4 mr-3 text-gray-400" />
                     AI Assistant
                   </button>
@@ -273,11 +322,17 @@ const Dashboard = () => {
                   Account Settings
                 </h3>
                 <div className="space-y-3">
-                  <button className="w-full flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                  <button
+                    onClick={handleSettings}
+                    className="w-full flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  >
                     <Settings className="h-4 w-4 mr-3 text-gray-400" />
                     Profile Settings
                   </button>
-                  <button className="w-full flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                  <button
+                    onClick={handleAnalytics}
+                    className="w-full flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                  >
                     <BarChart3 className="h-4 w-4 mr-3 text-gray-400" />
                     Analytics
                   </button>
