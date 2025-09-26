@@ -7,6 +7,23 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 
 const localizer = momentLocalizer(moment);
 
+// Custom styles for bookmark indicators
+const calendarStyles = `
+  .rbc-date-cell {
+    position: relative;
+  }
+  .rbc-month-view .rbc-date-cell {
+    position: relative;
+    height: 40px;
+  }
+  .bookmark-indicator {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    z-index: 10;
+  }
+`;
+
 const Calendar = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,6 +35,14 @@ const Calendar = () => {
   useEffect(() => {
     fetchPosts();
   }, []);
+
+  // Create a map of dates to posts for quick lookup
+  const getPostsForDate = (date) => {
+    const dateStr = moment(date).format("YYYY-MM-DD");
+    return events.filter(
+      (event) => moment(event.start).format("YYYY-MM-DD") === dateStr
+    );
+  };
 
   const fetchPosts = async () => {
     try {
@@ -88,6 +113,59 @@ const Calendar = () => {
         display: "block",
       },
     };
+  };
+
+  // Custom date cell component to show bookmark indicators
+  const CustomDateCell = ({ date, view }) => {
+    if (view !== "month") return null;
+
+    const postsForDate = getPostsForDate(date);
+    if (postsForDate.length === 0) return null;
+
+    // Group posts by platform and status
+    const postsByStatus = postsForDate.reduce((acc, event) => {
+      const status = event.resource.status || "pending";
+      acc[status] = (acc[status] || 0) + 1;
+      return acc;
+    }, {});
+
+    const getStatusColor = (status) => {
+      switch (status) {
+        case "published":
+          return "bg-green-500";
+        case "scheduled":
+          return "bg-blue-500";
+        case "pending":
+          return "bg-yellow-500";
+        case "failed":
+          return "bg-red-500";
+        default:
+          return "bg-gray-500";
+      }
+    };
+
+    return (
+      <div className="bookmark-indicator flex flex-wrap gap-1">
+        {Object.entries(postsByStatus).map(([status, count]) => (
+          <div
+            key={status}
+            className={`w-3 h-3 rounded-full ${getStatusColor(
+              status
+            )} flex items-center justify-center border border-white shadow-sm`}
+            title={`${count} ${status} post${count > 1 ? "s" : ""}`}
+          >
+            {count > 1 && (
+              <span
+                className="text-xs text-white font-bold"
+                style={{ fontSize: "8px", lineHeight: "1" }}
+              >
+                {count}
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    );
   };
 
   const EventModal = () => {
@@ -344,6 +422,9 @@ const Calendar = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Custom styles */}
+      <style>{calendarStyles}</style>
+
       {/* Header */}
       <div className="bg-white shadow">
         <div className="px-4 sm:px-6 lg:max-w-6xl lg:mx-auto lg:px-8">
@@ -395,6 +476,14 @@ const Calendar = () => {
                     </div>
                   </div>
                 ),
+                month: {
+                  dateHeader: ({ date, label }) => (
+                    <div className="relative">
+                      <span>{label}</span>
+                      <CustomDateCell date={date} view="month" />
+                    </div>
+                  ),
+                },
               }}
             />
           </div>
@@ -403,22 +492,55 @@ const Calendar = () => {
         {/* Legend */}
         <div className="mt-6 bg-white shadow rounded-lg p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4">Legend</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-green-500 rounded mr-2"></div>
-              <span className="text-sm text-gray-700">Published</span>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-2">
+                Post Status
+              </p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-green-500 rounded mr-2"></div>
+                  <span className="text-sm text-gray-700">Published</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-blue-500 rounded mr-2"></div>
+                  <span className="text-sm text-gray-700">Scheduled</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-yellow-500 rounded mr-2"></div>
+                  <span className="text-sm text-gray-700">Pending</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-red-500 rounded mr-2"></div>
+                  <span className="text-sm text-gray-700">Failed</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-blue-500 rounded mr-2"></div>
-              <span className="text-sm text-gray-700">Scheduled</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-yellow-500 rounded mr-2"></div>
-              <span className="text-sm text-gray-700">Pending</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-red-500 rounded mr-2"></div>
-              <span className="text-sm text-gray-700">Failed</span>
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-2">
+                Calendar Indicators
+              </p>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full border border-white shadow-sm mr-2"></div>
+                  <span className="text-sm text-gray-700">
+                    Scheduled posts (bookmark indicators on dates)
+                  </span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full flex items-center justify-center border border-white shadow-sm mr-2">
+                    <span
+                      className="text-xs text-white font-bold"
+                      style={{ fontSize: "8px" }}
+                    >
+                      2
+                    </span>
+                  </div>
+                  <span className="text-sm text-gray-700">
+                    Multiple posts on same day
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
