@@ -7,9 +7,9 @@ async function testTwitterAPI() {
   // Check if all required environment variables are set
   const requiredVars = [
     "TWITTER_API_KEY",
-    "TWITTER_API_SECRET", 
+    "TWITTER_API_SECRET",
     "TWITTER_ACCESS_TOKEN",
-    "TWITTER_ACCESS_TOKEN_SECRET"
+    "TWITTER_ACCESS_TOKEN_SECRET",
   ];
 
   console.log("📋 Checking environment variables:");
@@ -19,8 +19,10 @@ async function testTwitterAPI() {
   }
   console.log();
 
-  if (!requiredVars.every(varName => process.env[varName])) {
-    console.log("❌ Missing required environment variables. Please check your .env file.");
+  if (!requiredVars.every((varName) => process.env[varName])) {
+    console.log(
+      "❌ Missing required environment variables. Please check your .env file."
+    );
     return;
   }
 
@@ -34,7 +36,7 @@ async function testTwitterAPI() {
     });
 
     console.log("🔐 Testing Twitter API authentication...");
-    
+
     // Test 1: Get user info
     console.log("Test 1: Getting user information...");
     const user = await client.v2.me();
@@ -49,7 +51,9 @@ async function testTwitterAPI() {
     const tweetLimit = rateLimits.resources.statuses["/statuses/update"];
     console.log("✅ Rate limit info:");
     console.log(`   Tweet limit: ${tweetLimit.remaining}/${tweetLimit.limit}`);
-    console.log(`   Reset time: ${new Date(tweetLimit.reset * 1000).toLocaleString()}\n`);
+    console.log(
+      `   Reset time: ${new Date(tweetLimit.reset * 1000).toLocaleString()}\n`
+    );
 
     // Test 3: Post a test tweet (commented out to avoid spam)
     console.log("Test 3: Tweet posting capability...");
@@ -58,15 +62,14 @@ async function testTwitterAPI() {
 
     console.log("🎉 All Twitter API tests passed!");
     console.log("✅ Twitter integration is ready to use!");
-
   } catch (error) {
     console.error("❌ Twitter API test failed:");
     console.error("Error:", error.message);
-    
+
     if (error.code) {
       console.error("Error code:", error.code);
     }
-    
+
     if (error.data) {
       console.error("Error details:", JSON.stringify(error.data, null, 2));
     }

@@ -19,7 +19,7 @@ async function testTwitterEndpoints() {
       accessToken: process.env.TWITTER_ACCESS_TOKEN,
       accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
     });
-    
+
     // Get user info (equivalent to what /twitter/connect does)
     const userInfo = await client.v2.me();
     console.log("✅ Successfully authenticated with Twitter API");
@@ -29,9 +29,10 @@ async function testTwitterEndpoints() {
 
     // Test 2: Tweet posting capability
     console.log("Test 2: 📝 Testing Tweet Posting Capability...");
-    
+
     // Test tweet content (won't actually post)
-    const testTweetText = "🚀 Testing automated tweet posting from my app! #automation #twitter";
+    const testTweetText =
+      "🚀 Testing automated tweet posting from my app! #automation #twitter";
     console.log(`   Tweet content: "${testTweetText}"`);
     console.log(`   Character count: ${testTweetText.length}/280`);
     console.log("   ✅ Tweet content validation passed");
@@ -45,15 +46,29 @@ async function testTwitterEndpoints() {
 
     // Test 4: API endpoints availability
     console.log("Test 4: 🌐 Testing API Endpoints...");
-    
+
     const endpoints = [
-      { method: "GET", path: "/api/social/twitter/auth", description: "Check Twitter auth status" },
-      { method: "POST", path: "/api/social/twitter/connect", description: "Connect Twitter account" },
-      { method: "POST", path: "/api/social/twitter/post", description: "Post tweet" }
+      {
+        method: "GET",
+        path: "/api/social/twitter/auth",
+        description: "Check Twitter auth status",
+      },
+      {
+        method: "POST",
+        path: "/api/social/twitter/connect",
+        description: "Connect Twitter account",
+      },
+      {
+        method: "POST",
+        path: "/api/social/twitter/post",
+        description: "Post tweet",
+      },
     ];
 
-    endpoints.forEach(endpoint => {
-      console.log(`   ✅ ${endpoint.method} ${endpoint.path} - ${endpoint.description}`);
+    endpoints.forEach((endpoint) => {
+      console.log(
+        `   ✅ ${endpoint.method} ${endpoint.path} - ${endpoint.description}`
+      );
     });
 
     console.log("\n🎉 All Twitter API Integration Tests Passed!");
@@ -68,11 +83,10 @@ async function testTwitterEndpoints() {
 
     console.log("\n🚀 Twitter integration is fully operational!");
     console.log("   Ready for production use with user authentication");
-
   } catch (error) {
     console.error("❌ Twitter API integration test failed:");
     console.error("Error:", error.message);
-    
+
     if (error.code) {
       console.error("Error code:", error.code);
     }
