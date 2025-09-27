@@ -1,16 +1,33 @@
-services:
-  - type: web
-    name: social-media-automation
-    env: static
-    rootDir: Frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: build
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: GENERATE_SOURCEMAP
-        value: false
-    routes:
-      - type: rewrite
+services:services:
+
+  - type: web  - type: web
+
+    name: social-media-automation-frontend    name: social-media-automation
+
+    env: static    env: static
+
+    rootDir: Frontend    rootDir: Frontend
+
+    buildCommand: npm ci && npm run build    buildCommand: npm install && npm run build
+
+    staticPublishPath: build    staticPublishPath: build
+
+    envVars:    envVars:
+
+      - key: NODE_ENV      - key: NODE_ENV
+
+        value: production        value: production
+
+      - key: GENERATE_SOURCEMAP      - key: GENERATE_SOURCEMAP
+
+        value: false        value: false
+
+      - key: CI    routes:
+
+        value: false      - type: rewrite
+
+    routes:        source: /*
+
+      - type: rewrite        destination: /index.html
         source: /*
         destination: /index.html
