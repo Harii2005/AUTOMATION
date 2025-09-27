@@ -156,14 +156,17 @@ router.post("/schedule", authMiddleware, async (req, res) => {
     }
 
     // Format scheduled time for user-friendly display
-    const formattedScheduledTime = new Date(scheduledDate).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      timeZoneName: 'short'
-    });
+    const formattedScheduledTime = new Date(scheduledDate).toLocaleString(
+      "en-US",
+      {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZoneName: "short",
+      }
+    );
 
     res.status(201).json({
       success: true,

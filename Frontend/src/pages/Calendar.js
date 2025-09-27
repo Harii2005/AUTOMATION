@@ -292,16 +292,20 @@ const Calendar = () => {
         });
 
         // Show success flash message with scheduled time
-        const scheduledTime = response.data?.scheduledTime || 
+        const scheduledTime =
+          response.data?.scheduledTime ||
           moment(formData.scheduledAt).format("MMMM D, YYYY [at] h:mm A");
-        
+
         addSuccess(`Post successfully scheduled for ${scheduledTime}`);
 
         setShowCreateModal(false);
         fetchPosts(); // Refresh calendar
       } catch (error) {
         console.error("Error creating post:", error);
-        const errorMessage = error.response?.data?.error || error.message || "Unknown error occurred";
+        const errorMessage =
+          error.response?.data?.error ||
+          error.message ||
+          "Unknown error occurred";
         addError(`Error scheduling post: ${errorMessage}`);
       } finally {
         setIsSubmitting(false);
@@ -328,7 +332,10 @@ const Calendar = () => {
         fetchPosts(); // Refresh calendar
       } catch (error) {
         console.error("Error posting now:", error);
-        const errorMessage = error.response?.data?.error || error.message || "Unknown error occurred";
+        const errorMessage =
+          error.response?.data?.error ||
+          error.message ||
+          "Unknown error occurred";
         addError(`Error posting immediately: ${errorMessage}`);
       } finally {
         setIsSubmitting(false);
