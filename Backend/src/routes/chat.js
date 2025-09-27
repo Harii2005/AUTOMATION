@@ -5,10 +5,14 @@ const { authMiddleware } = require("../middleware/auth");
 
 const router = express.Router();
 
-// Initialize GROK (xAI) - uses OpenAI-compatible API
+// Initialize GROK via OpenRouter API
 const openai = new OpenAI({
-  apiKey: process.env.GROK_API_KEY,
-  baseURL: process.env.GROK_API_URL || "https://api.x.ai/v1",
+  apiKey: process.env.DEEPSEEK_API,
+  baseURL: "https://openrouter.ai/api/v1",
+  defaultHeaders: {
+    "HTTP-Referer": process.env.SITE_URL || "http://localhost:3000", // Your site URL for rankings
+    "X-Title": process.env.SITE_NAME || "Social Media Content Generator", // Your site title
+  },
 });
 
 // Create a new conversation
@@ -101,8 +105,8 @@ router.post("/generate-content", authMiddleware, async (req, res) => {
     // Skip conversation verification for now (TODO: Convert to Supabase)
     console.log("Received prompt:", prompt);
     console.log(
-      "GROK API Key present:",
-      process.env.GROK_API_KEY ? "Yes" : "No"
+      "DeepSeek API Key present:",
+      process.env.DEEPSEEK_API ? "Yes" : "No"
     );
 
     // Skip storing user message for now (TODO: Convert to Supabase)
@@ -125,15 +129,15 @@ router.post("/generate-content", authMiddleware, async (req, res) => {
         systemPrompt = `You are a helpful AI assistant for social media content creation. Create engaging content based on the user's request.`;
     }
 
-    // Simple message setup for GROK testing (TODO: Add conversation history from Supabase)
+    // Simple message setup for DeepSeek testing (TODO: Add conversation history from Supabase)
     let messages = [
       { role: "system", content: systemPrompt },
       { role: "user", content: prompt },
     ];
 
-    // Call GROK API
+    // Call DeepSeek API via OpenRouter
     const completion = await openai.chat.completions.create({
-      model: process.env.GROK_MODEL || "grok-beta",
+      model: "deepseek/deepseek-chat",
       messages: messages,
       max_tokens: length === "short" ? 150 : length === "long" ? 500 : 300,
       temperature: 0.7,
@@ -142,7 +146,7 @@ router.post("/generate-content", authMiddleware, async (req, res) => {
     const aiResponse = completion.choices[0].message.content;
 
     // Skip storing AI response for now (TODO: Convert to Supabase)
-    console.log("GROK Response:", aiResponse);
+    console.log("DeepSeek Response:", aiResponse);
 
     // Skip conversation update for now (TODO: Convert to Supabase)
 
@@ -161,7 +165,7 @@ router.post("/generate-content", authMiddleware, async (req, res) => {
 
     if (error.code === "insufficient_quota") {
       return res.status(429).json({
-        error: "GROK API quota exceeded. Please check your API usage.",
+        error: "DeepSeek API quota exceeded. Please check your API usage.",
       });
     }
 

@@ -59,7 +59,7 @@ const Chat = () => {
 
       const botMessage = {
         id: Date.now() + 1,
-        content: response.data.response,
+        content: response.data.generatedContent,
         isBot: true,
         timestamp: new Date(),
       };

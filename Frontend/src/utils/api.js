@@ -111,7 +111,7 @@ export const apiClient = {
     socialAPI.disconnectAccount(accountId),
 
   // Chat methods
-  chatWithAI: (message) => chatAPI.generateContent({ message }),
+  chatWithAI: (message) => chatAPI.generateContent({ prompt: message }),
 
   // Posts methods
   getPosts: () => postsAPI.getScheduledPosts(),
