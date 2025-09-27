@@ -1,17 +1,18 @@
-const { supabase } = require('./src/utils/database');
+const { supabase } = require("./src/utils/database");
 
 /**
  * Schedule a text post for today at 1:30 AM
  */
 
 async function scheduleTextPost() {
-  console.log('📝 Scheduling text post for today at 1:30 AM');
-  
+  console.log("📝 Scheduling text post for today at 1:30 AM");
+
   try {
     // Get the first user with a Twitter account
     const { data: users, error: userError } = await supabase
-      .from('users')
-      .select(`
+      .from("users")
+      .select(
+        `
         id,
         email,
         social_accounts!inner (
@@ -20,18 +21,19 @@ async function scheduleTextPost() {
           accountName,
           isActive
         )
-      `)
-      .eq('social_accounts.platform', 'TWITTER')
-      .eq('social_accounts.isActive', true)
+      `
+      )
+      .eq("social_accounts.platform", "TWITTER")
+      .eq("social_accounts.isActive", true)
       .limit(1);
 
     if (userError) {
-      console.error('❌ Error fetching user:', userError);
+      console.error("❌ Error fetching user:", userError);
       return;
     }
 
     if (!users || users.length === 0) {
-      console.error('❌ No users with Twitter accounts found');
+      console.error("❌ No users with Twitter accounts found");
       return;
     }
 
@@ -40,8 +42,15 @@ async function scheduleTextPost() {
 
     // Set scheduled time to today at 1:30 AM
     const today = new Date();
-    const scheduledTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 1, 30, 0);
-    
+    const scheduledTime = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+      1,
+      30,
+      0
+    );
+
     // If 1:30 AM has already passed today, schedule for tomorrow
     if (scheduledTime < new Date()) {
       scheduledTime.setDate(scheduledTime.getDate() + 1);
@@ -53,24 +62,24 @@ async function scheduleTextPost() {
 
     // Create the scheduled post
     const { data: post, error: postError } = await supabase
-      .from('scheduled_posts')
+      .from("scheduled_posts")
       .insert({
         userId: user.id,
         socialAccountId: socialAccount.id,
-        content: 'this is a test',
+        content: "this is a test",
         scheduledTime: scheduledTime.toISOString(),
-        status: 'PENDING',
-        platform: 'TWITTER'
+        status: "PENDING",
+        platform: "TWITTER",
       })
       .select()
       .single();
 
     if (postError) {
-      console.error('❌ Error creating scheduled post:', postError);
+      console.error("❌ Error creating scheduled post:", postError);
       return;
     }
 
-    console.log('✅ Text post scheduled successfully!');
+    console.log("✅ Text post scheduled successfully!");
     console.log(`📝 Post ID: ${post.id}`);
     console.log(`📝 Content: "${post.content}"`);
     console.log(`📅 Scheduled for: ${scheduledTime.toLocaleString()}`);
@@ -82,14 +91,15 @@ async function scheduleTextPost() {
     const minutesUntil = Math.round(timeUntilPost / (1000 * 60));
 
     if (minutesUntil > 0) {
-      console.log(`⏳ Post will be processed in approximately ${minutesUntil} minutes`);
+      console.log(
+        `⏳ Post will be processed in approximately ${minutesUntil} minutes`
+      );
       console.log(`💡 Make sure the server is running: node src/index.js`);
     } else {
       console.log(`🚀 Post is scheduled for immediate processing (past due)`);
     }
-
   } catch (error) {
-    console.error('❌ Error scheduling text post:', error);
+    console.error("❌ Error scheduling text post:", error);
   }
 }
 

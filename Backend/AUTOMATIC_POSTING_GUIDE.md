@@ -9,12 +9,14 @@ The automatic posting system is a comprehensive solution that enables scheduled 
 ### Components
 
 1. **ScheduledPostingService** (`src/services/scheduledPostingService.js`)
+
    - Main service that runs continuously in the background
    - Checks for pending posts every minute using cron jobs
    - Handles posting to different social media platforms
    - Manages retry logic and error handling
 
 2. **Database Schema** (`prisma/schema.prisma`)
+
    - `ScheduledPost` model with comprehensive tracking fields
    - Support for multiple platforms (Twitter, LinkedIn, Instagram)
    - Status tracking (PENDING, PROCESSING, POSTED, FAILED, CANCELLED)
@@ -30,22 +32,26 @@ The automatic posting system is a comprehensive solution that enables scheduled 
 ### ✅ Implemented Features
 
 1. **Automatic Post Processing**
+
    - Cron-based scheduler that runs every minute
    - Processes all pending posts that are due
    - Updates post status throughout the lifecycle
 
 2. **Twitter Integration**
+
    - Text-only posts
    - Posts with media (images)
    - Per-user authentication token support
    - Fallback to global app tokens when needed
 
 3. **Error Handling & Retry Logic**
+
    - Automatic retry for failed posts (up to 3 attempts)
    - 5-minute delay between retries
    - Comprehensive error logging and status tracking
 
 4. **Post Management**
+
    - Cancel pending posts
    - Retry failed posts
    - View posts by status
@@ -58,11 +64,11 @@ The automatic posting system is a comprehensive solution that enables scheduled 
 
 ### 🔄 Platform Support
 
-| Platform  | Status | Features |
-|-----------|--------|----------|
-| Twitter   | ✅ Full | Text posts, media posts, user tokens |
-| LinkedIn  | 📋 Planned | Placeholder implementation |
-| Instagram | 📋 Planned | Placeholder implementation |
+| Platform  | Status     | Features                             |
+| --------- | ---------- | ------------------------------------ |
+| Twitter   | ✅ Full    | Text posts, media posts, user tokens |
+| LinkedIn  | 📋 Planned | Placeholder implementation           |
+| Instagram | 📋 Planned | Placeholder implementation           |
 
 ## How It Works
 
@@ -132,25 +138,25 @@ ENCRYPTION_KEY=your_32_character_encryption_key
 ### 1. Schedule a Post
 
 ```javascript
-const response = await fetch('/api/posts/schedule', {
-  method: 'POST',
+const response = await fetch("/api/posts/schedule", {
+  method: "POST",
   headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
   },
   body: JSON.stringify({
-    content: 'Hello, world! This is a scheduled post.',
-    scheduledAt: '2024-01-01T12:00:00Z',
-    platforms: ['twitter']
-  })
+    content: "Hello, world! This is a scheduled post.",
+    scheduledAt: "2024-01-01T12:00:00Z",
+    platforms: ["twitter"],
+  }),
 });
 ```
 
 ### 2. Monitor Post Status
 
 ```javascript
-const response = await fetch('/api/posts/status/pending', {
-  headers: { 'Authorization': `Bearer ${token}` }
+const response = await fetch("/api/posts/status/pending", {
+  headers: { Authorization: `Bearer ${token}` },
 });
 const { data: pendingPosts } = await response.json();
 ```
@@ -159,8 +165,8 @@ const { data: pendingPosts } = await response.json();
 
 ```javascript
 const response = await fetch(`/api/posts/${postId}/cancel`, {
-  method: 'POST',
-  headers: { 'Authorization': `Bearer ${token}` }
+  method: "POST",
+  headers: { Authorization: `Bearer ${token}` },
 });
 ```
 
@@ -207,10 +213,10 @@ The system provides comprehensive logging:
 Check post statuses directly in the database:
 
 ```sql
-SELECT 
-  id, content, status, platform, 
+SELECT
+  id, content, status, platform,
   scheduledTime, error, retryCount
-FROM scheduled_posts 
+FROM scheduled_posts
 ORDER BY scheduledTime DESC;
 ```
 
@@ -225,11 +231,13 @@ Use the API endpoints to monitor system health:
 ## Deployment
 
 1. **Environment Setup**
+
    - Ensure all environment variables are configured
    - Run database migrations: `npx prisma migrate deploy`
    - Generate Prisma client: `npx prisma generate`
 
 2. **Service Start**
+
    - The ScheduledPostingService starts automatically with the main server
    - No additional configuration required
 
@@ -243,11 +251,13 @@ Use the API endpoints to monitor system health:
 ### Common Issues
 
 1. **Twitter API Authentication Errors**
+
    - Verify API credentials in environment variables
    - Check Twitter Developer Console for app status
    - Ensure proper permissions are set
 
 2. **Database Connection Issues**
+
    - Verify DATABASE_URL and Supabase credentials
    - Check network connectivity
    - Ensure database migrations are applied

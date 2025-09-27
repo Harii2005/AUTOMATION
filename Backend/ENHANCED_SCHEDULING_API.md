@@ -211,11 +211,13 @@ Get predefined post templates.
 ### 1. Media Support
 
 #### Supported Media Types
+
 - **IMAGE**: JPG, PNG, GIF (up to 5MB)
 - **VIDEO**: MP4, MOV (up to 512MB)
 - **GIF**: Animated GIF files
 
 #### Example with Media
+
 ```json
 {
   "content": "Check out this amazing image!",
@@ -228,21 +230,24 @@ Get predefined post templates.
 ### 2. Token Management
 
 #### User-Specific Tokens
+
 - Posts use the user's personal social media tokens by default
 - Provides better authentication and posting permissions
 - Respects user's account settings and limitations
 
 #### Fallback to Global Tokens
+
 - If user tokens fail, system can fallback to app-level tokens
 - Ensures posts are still delivered even if user tokens expire
 - Configurable per post
 
 #### Example Configuration
+
 ```json
 {
   "postOptions": {
-    "useUserTokens": true,    // Try user tokens first
-    "fallbackToGlobal": true  // Fallback to app tokens if needed
+    "useUserTokens": true, // Try user tokens first
+    "fallbackToGlobal": true // Fallback to app tokens if needed
   }
 }
 ```
@@ -250,16 +255,18 @@ Get predefined post templates.
 ### 3. Enhanced Retry Logic
 
 #### Exponential Backoff
+
 - First retry: 5 minutes
 - Second retry: 10 minutes
 - Third retry: 20 minutes
 
 #### Configurable Retries
+
 ```json
 {
   "postOptions": {
     "retryOnFailure": true,
-    "maxRetries": 3  // 0-5 retries allowed
+    "maxRetries": 3 // 0-5 retries allowed
   }
 }
 ```
@@ -267,6 +274,7 @@ Get predefined post templates.
 ### 4. Post Types
 
 #### Available Types
+
 - **STANDARD**: Regular social media post
 - **THREAD**: Multi-part post series (Twitter)
 - **REPLY**: Reply to existing post
@@ -275,6 +283,7 @@ Get predefined post templates.
 ### 5. Platform-Specific Features
 
 #### Twitter
+
 - ✅ Text posts (280 characters)
 - ✅ Media posts (images, videos, GIFs)
 - ✅ Threads
@@ -282,12 +291,14 @@ Get predefined post templates.
 - ✅ Retry logic
 
 #### LinkedIn (Planned)
+
 - 📋 Text posts (3000 characters)
 - 📋 Media posts
 - 📋 Polls
 - 📋 Company page posting
 
 #### Instagram (Planned)
+
 - 📋 Media-only posts
 - 📋 Stories
 - 📋 Reels
@@ -328,24 +339,49 @@ Get predefined post templates.
 
 ```html
 <form id="scheduleForm">
-  <textarea name="content" placeholder="What's on your mind?" maxlength="280"></textarea>
-  
-  <input type="file" name="media" accept="image/*,video/*">
-  
-  <input type="datetime-local" name="scheduledAt" required>
-  
+  <textarea
+    name="content"
+    placeholder="What's on your mind?"
+    maxlength="280"
+  ></textarea>
+
+  <input type="file" name="media" accept="image/*,video/*" />
+
+  <input type="datetime-local" name="scheduledAt" required />
+
   <div class="platforms">
-    <label><input type="checkbox" name="platforms" value="twitter"> Twitter</label>
-    <label><input type="checkbox" name="platforms" value="linkedin"> LinkedIn</label>
+    <label
+      ><input type="checkbox" name="platforms" value="twitter" /> Twitter</label
+    >
+    <label
+      ><input type="checkbox" name="platforms" value="linkedin" />
+      LinkedIn</label
+    >
   </div>
-  
+
   <div class="advanced-options">
-    <label><input type="checkbox" name="useUserTokens" checked> Use my personal tokens</label>
-    <label><input type="checkbox" name="fallbackToGlobal" checked> Fallback to app tokens</label>
-    <label><input type="checkbox" name="retryOnFailure" checked> Auto-retry failed posts</label>
-    <input type="number" name="maxRetries" value="3" min="0" max="5" placeholder="Max retries">
+    <label
+      ><input type="checkbox" name="useUserTokens" checked /> Use my personal
+      tokens</label
+    >
+    <label
+      ><input type="checkbox" name="fallbackToGlobal" checked /> Fallback to app
+      tokens</label
+    >
+    <label
+      ><input type="checkbox" name="retryOnFailure" checked /> Auto-retry failed
+      posts</label
+    >
+    <input
+      type="number"
+      name="maxRetries"
+      value="3"
+      min="0"
+      max="5"
+      placeholder="Max retries"
+    />
   </div>
-  
+
   <button type="submit">Schedule Post</button>
 </form>
 ```
@@ -354,11 +390,11 @@ Get predefined post templates.
 
 ```javascript
 async function schedulePost(formData) {
-  const response = await fetch('/api/posts/schedule', {
-    method: 'POST',
+  const response = await fetch("/api/posts/schedule", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       content: formData.content,
@@ -371,17 +407,17 @@ async function schedulePost(formData) {
         fallbackToGlobal: formData.fallbackToGlobal,
         retryOnFailure: formData.retryOnFailure,
         maxRetries: formData.maxRetries,
-        postType: formData.postType || 'standard'
-      }
-    })
+        postType: formData.postType || "standard",
+      },
+    }),
   });
-  
+
   const result = await response.json();
-  
+
   if (result.success) {
-    console.log('Posts scheduled:', result.data.scheduled);
+    console.log("Posts scheduled:", result.data.scheduled);
   } else {
-    console.error('Scheduling failed:', result.error);
+    console.error("Scheduling failed:", result.error);
   }
 }
 ```
@@ -391,6 +427,7 @@ async function schedulePost(formData) {
 ### From Basic to Enhanced Scheduling
 
 #### Old Format
+
 ```json
 {
   "content": "Hello world",
@@ -400,6 +437,7 @@ async function schedulePost(formData) {
 ```
 
 #### New Format (Backward Compatible)
+
 ```json
 {
   "content": "Hello world",
