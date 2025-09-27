@@ -81,13 +81,17 @@ class ScheduledPostingService {
           .gt("scheduledTime", now.toISOString())
           .order("scheduledTime", { ascending: true })
           .limit(3);
-          
+
         if (upcomingPosts && upcomingPosts.length > 0) {
           console.log("📭 No posts due now, but found upcoming posts:");
-          upcomingPosts.forEach(post => {
+          upcomingPosts.forEach((post) => {
             const scheduledTime = new Date(post.scheduledTime);
             const minutesUntil = Math.round((scheduledTime - now) / 60000);
-            console.log(`   ⏰ "${post.content}" in ${minutesUntil} minutes (${scheduledTime.toLocaleTimeString()})`);
+            console.log(
+              `   ⏰ "${
+                post.content
+              }" in ${minutesUntil} minutes (${scheduledTime.toLocaleTimeString()})`
+            );
           });
         } else {
           console.log("📭 No scheduled posts found");
@@ -114,7 +118,7 @@ class ScheduledPostingService {
 
       // Update status to indicate we're processing (comment out since PROCESSING isn't in the current schema)
       // await this.updatePostStatus(post.id, 'PROCESSING');
-      
+
       let result = null;
       let success = false;
 

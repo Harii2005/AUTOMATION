@@ -3,18 +3,20 @@
 ## Quick Deployment Steps
 
 1. **Push your backend code to GitHub** (if not already done)
-   
 2. **Go to Render Dashboard** (https://render.com)
+
    - Click "New +" → "Web Service"
    - Connect your GitHub repository
    - Select the folder: `Backend`
 
 3. **Configure Build & Deploy Settings:**
+
    - **Build Command:** `npm install`
    - **Start Command:** `npm start`
    - **Environment:** `Node.js`
 
 4. **Add Environment Variables:**
+
    ```
    NODE_ENV=production
    SUPABASE_URL=https://jeokwwumxpgdqvahgksh.supabase.co
@@ -34,7 +36,7 @@
 If you prefer not to use render.yaml, you can:
 
 1. Create a new Web Service on Render
-2. Set the root directory to `/Backend` 
+2. Set the root directory to `/Backend`
 3. Use the build and start commands above
 4. Manually add environment variables in the Render dashboard
 
@@ -48,11 +50,13 @@ You'll need to update your frontend to use this URL instead of localhost.
 ## Testing the Deployment
 
 Test your deployed backend:
+
 ```bash
 curl https://your-backend-url.onrender.com/api/health
 ```
 
 You should get a response like:
+
 ```json
-{"status":"OK","timestamp":"...","service":"automation-backend"}
+{ "status": "OK", "timestamp": "...", "service": "automation-backend" }
 ```

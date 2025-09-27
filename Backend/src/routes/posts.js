@@ -87,12 +87,15 @@ router.post("/schedule", authMiddleware, async (req, res) => {
 
     // Create scheduled posts for each platform
     const scheduledPosts = [];
-    
-    console.log(`📋 Processing ${targetPlatforms.length} target platform(s):`, targetPlatforms);
-    
+
+    console.log(
+      `📋 Processing ${targetPlatforms.length} target platform(s):`,
+      targetPlatforms
+    );
+
     for (const platform of targetPlatforms) {
       console.log(`🔍 Looking for ${platform} account for user ${userId}`);
-      
+
       // Get the social account for this platform
       const { data: socialAccount, error: socialError } = await supabase
         .from("social_accounts")
@@ -102,9 +105,9 @@ router.post("/schedule", authMiddleware, async (req, res) => {
         .eq("isActive", true) // camelCase for Supabase
         .single();
 
-      console.log(`📊 Social account query result for ${platform}:`, { 
-        data: socialAccount, 
-        error: socialError 
+      console.log(`📊 Social account query result for ${platform}:`, {
+        data: socialAccount,
+        error: socialError,
       });
 
       if (socialError || !socialAccount) {
@@ -113,7 +116,7 @@ router.post("/schedule", authMiddleware, async (req, res) => {
         );
         continue;
       }
-      
+
       console.log(`✅ Found ${platform} account:`, socialAccount.id);
 
       // Create scheduled post with advanced options

@@ -19,7 +19,7 @@ app.use(
   cors({
     origin:
       process.env.NODE_ENV === "production"
-        ? ["https://your-production-domain.com"]
+        ? ["https://frontenddautomation.onrender.com"]
         : ["http://localhost:3000"],
     credentials: true,
   })
@@ -35,7 +35,11 @@ app.get("/health", (req, res) => {
 
 // Health check route for API
 app.get("/api/health", (req, res) => {
-  res.json({ status: "OK", timestamp: new Date().toISOString(), service: "automation-backend" });
+  res.json({
+    status: "OK",
+    timestamp: new Date().toISOString(),
+    service: "automation-backend",
+  });
 });
 
 // Test Supabase connection
