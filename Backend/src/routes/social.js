@@ -388,13 +388,17 @@ router.post("/twitter/post", authMiddleware, async (req, res) => {
     const { data: account, error: fetchError } = await supabase
       .from("social_accounts")
       .select("*")
-      .eq("user_id", userId)
-      .eq("platform", "twitter")
-      .eq("is_connected", true)
+      .eq("userId", userId)
+      .eq("platform", "TWITTER")
+      .eq("isActive", true)
       .single();
 
     if (fetchError || !account) {
-      return res.status(400).json({ error: "Twitter account not connected" });
+      console.log(
+        "No user Twitter account found, using global tokens for immediate posting"
+      );
+      // For immediate posting, we can proceed with global tokens
+      // return res.status(400).json({ error: "Twitter account not connected" });
     }
 
     let result;

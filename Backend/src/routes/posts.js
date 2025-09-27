@@ -9,7 +9,10 @@ router.post("/schedule", authMiddleware, async (req, res) => {
   try {
     console.log("📝 Schedule post request received:");
     console.log("Request body:", JSON.stringify(req.body, null, 2));
-    console.log("User ID:", req.user.userId);
+    console.log(
+      "User from auth middleware:",
+      JSON.stringify(req.user, null, 2)
+    );
 
     const {
       content,
@@ -119,7 +122,7 @@ router.post("/schedule", authMiddleware, async (req, res) => {
 
       console.log(`✅ Found ${platform} account:`, socialAccount.id);
 
-      // Create scheduled post with advanced options
+      // Create scheduled post with only existing columns
       const { data: scheduledPost, error: postError } = await supabase
         .from("scheduled_posts")
         .insert({
@@ -131,18 +134,6 @@ router.post("/schedule", authMiddleware, async (req, res) => {
           scheduledTime: scheduledDate.toISOString(),
           status: "PENDING",
           platform: platform.toUpperCase(),
-          maxRetries: retryOnFailure ? maxRetries : 0,
-          useUserTokens: useUserTokens,
-          fallbackToGlobal: fallbackToGlobal,
-          postType: postType.toUpperCase(),
-          postOptions: {
-            enableEncryption,
-            retryOnFailure,
-            originalRequest: {
-              userAgent: req.get("User-Agent"),
-              timestamp: new Date().toISOString(),
-            },
-          },
         })
         .select()
         .single();

@@ -117,8 +117,7 @@ enum MediaType {
 }
 
 enum PostStatus {
-  PENDING  cd Backend
-  npx prisma migrate dev --name add_posting_features
+  PENDING
   PROCESSING
   POSTED
   FAILED

@@ -275,7 +275,7 @@ const Calendar = () => {
       scheduledAt: selectedDate
         ? moment(selectedDate).format("YYYY-MM-DDTHH:mm")
         : "",
-      platforms: [],
+      platforms: ["twitter"],
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -293,6 +293,39 @@ const Calendar = () => {
         fetchPosts(); // Refresh calendar
       } catch (error) {
         console.error("Error creating post:", error);
+        alert(
+          "Error creating scheduled post: " +
+            (error.response?.data?.error || error.message)
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    const handlePostNow = async () => {
+      if (!formData.content.trim()) {
+        alert("Please enter content for your post");
+        return;
+      }
+
+      setIsSubmitting(true);
+
+      try {
+        const response = await api.post("/posts/post-now", {
+          content: formData.content,
+          platforms: formData.platforms,
+        });
+
+        console.log("Post now response:", response.data);
+        alert("Post published successfully!");
+        setShowCreateModal(false);
+        fetchPosts(); // Refresh calendar
+      } catch (error) {
+        console.error("Error posting now:", error);
+        alert(
+          "Error posting immediately: " +
+            (error.response?.data?.error || error.message)
+        );
       } finally {
         setIsSubmitting(false);
       }
@@ -393,14 +426,22 @@ const Calendar = () => {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="flex-1 inline-flex justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                  className="inline-flex justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                 >
                   Cancel
                 </button>
                 <button
+                  type="button"
+                  onClick={handlePostNow}
+                  disabled={isSubmitting}
+                  className="inline-flex justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
+                >
+                  {isSubmitting ? "Posting..." : "Post Now"}
+                </button>
+                <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 inline-flex justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                  className="inline-flex justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
                 >
                   {isSubmitting ? "Scheduling..." : "Schedule Post"}
                 </button>

@@ -17,10 +17,10 @@ const port = process.env.PORT || 5001;
 app.use(helmet());
 app.use(
   cors({
-    origin:
-      process.env.NODE_ENV === "production"
-        ? ["https://frontenddautomation.onrender.com"]
-        : ["http://localhost:3000"],
+    origin: [
+      "http://localhost:3000",
+      "https://frontenddautomation.onrender.com",
+    ],
     credentials: true,
   })
 );
