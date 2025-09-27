@@ -85,6 +85,11 @@ model ScheduledPost {
   platformPostId  String?
   error           String?
   retryCount      Int        @default(0)
+  maxRetries      Int        @default(3)
+  useUserTokens   Boolean    @default(true)
+  fallbackToGlobal Boolean   @default(true)
+  postType        PostType   @default(STANDARD)
+  postOptions     Json?
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 
@@ -112,8 +117,17 @@ enum MediaType {
 }
 
 enum PostStatus {
-  PENDING
+  PENDING  cd Backend
+  npx prisma migrate dev --name add_posting_features
+  PROCESSING
   POSTED
   FAILED
   CANCELLED
+}
+
+enum PostType {
+  STANDARD
+  THREAD
+  REPLY
+  RETWEET
 }

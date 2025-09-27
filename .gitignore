@@ -28,17 +28,7 @@ pids
 coverage/
 */coverage/
 
-# Build directories
-build/
-dist/
-*/build/
-*/dist/
 
-# Temporary directories
-tmp/
-temp/
-*/tmp/
-*/temp/
 
 # Cache directories
 .cache
