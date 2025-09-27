@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Calendar as BigCalendar, momentLocalizer } from "react-big-calendar";
 import moment from "moment";
 import { api } from "../utils/api";
+import { useFlashMessage } from "../contexts/FlashMessageContext";
 import { Plus, Edit3, Trash2, Clock } from "lucide-react";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 
@@ -31,6 +32,7 @@ const Calendar = () => {
   const [showEventModal, setShowEventModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
+  const { addSuccess, addError } = useFlashMessage();
 
   useEffect(() => {
     fetchPosts();
@@ -284,19 +286,23 @@ const Calendar = () => {
       setIsSubmitting(true);
 
       try {
-        await api.createPost({
+        const response = await api.createPost({
           ...formData,
           scheduledAt: new Date(formData.scheduledAt).toISOString(),
         });
+
+        // Show success flash message with scheduled time
+        const scheduledTime = response.data?.scheduledTime || 
+          moment(formData.scheduledAt).format("MMMM D, YYYY [at] h:mm A");
+        
+        addSuccess(`Post successfully scheduled for ${scheduledTime}`);
 
         setShowCreateModal(false);
         fetchPosts(); // Refresh calendar
       } catch (error) {
         console.error("Error creating post:", error);
-        alert(
-          "Error creating scheduled post: " +
-            (error.response?.data?.error || error.message)
-        );
+        const errorMessage = error.response?.data?.error || error.message || "Unknown error occurred";
+        addError(`Error scheduling post: ${errorMessage}`);
       } finally {
         setIsSubmitting(false);
       }
@@ -304,7 +310,7 @@ const Calendar = () => {
 
     const handlePostNow = async () => {
       if (!formData.content.trim()) {
-        alert("Please enter content for your post");
+        addError("Please enter content for your post");
         return;
       }
 
@@ -317,15 +323,13 @@ const Calendar = () => {
         });
 
         console.log("Post now response:", response.data);
-        alert("Post published successfully!");
+        addSuccess("Post published successfully!");
         setShowCreateModal(false);
         fetchPosts(); // Refresh calendar
       } catch (error) {
         console.error("Error posting now:", error);
-        alert(
-          "Error posting immediately: " +
-            (error.response?.data?.error || error.message)
-        );
+        const errorMessage = error.response?.data?.error || error.message || "Unknown error occurred";
+        addError(`Error posting immediately: ${errorMessage}`);
       } finally {
         setIsSubmitting(false);
       }
