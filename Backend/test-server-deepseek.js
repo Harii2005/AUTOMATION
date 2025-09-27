@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config();
 
 // Simple test endpoint that doesn't require authentication
 const express = require("express");
@@ -28,7 +28,13 @@ app.post("/test-chat", async (req, res) => {
       length = "short",
     } = req.body;
 
-    console.log("📝 Received test request:", { prompt, contentType, platform, tone, length });
+    console.log("📝 Received test request:", {
+      prompt,
+      contentType,
+      platform,
+      tone,
+      length,
+    });
 
     // Create system prompt based on content type
     let systemPrompt = "";
@@ -74,7 +80,7 @@ app.post("/test-chat", async (req, res) => {
         tone,
         length,
         model: completion.model,
-        usage: completion.usage
+        usage: completion.usage,
       },
     });
   } catch (error) {
@@ -86,10 +92,10 @@ app.post("/test-chat", async (req, res) => {
       });
     }
 
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
       error: "Failed to generate content",
-      details: error.message 
+      details: error.message,
     });
   }
 });
@@ -97,38 +103,42 @@ app.post("/test-chat", async (req, res) => {
 const PORT = 3333;
 const server = app.listen(PORT, () => {
   console.log(`🚀 DeepSeek Test Server running on http://localhost:${PORT}`);
-  console.log(`📝 Test the endpoint: curl -X POST http://localhost:${PORT}/test-chat -H "Content-Type: application/json" -d '{"prompt":"Write a motivational quote"}'`);
+  console.log(
+    `📝 Test the endpoint: curl -X POST http://localhost:${PORT}/test-chat -H "Content-Type: application/json" -d '{"prompt":"Write a motivational quote"}'`
+  );
 });
 
 // Test the endpoint programmatically
 setTimeout(async () => {
   try {
-    const axios = require('axios');
-    
+    const axios = require("axios");
+
     console.log("\n🧪 Running automated test...");
-    
+
     const testData = {
       prompt: "Create a motivational post about overcoming challenges",
       contentType: "text_post",
       platform: "linkedin",
       tone: "inspirational",
-      length: "medium"
+      length: "medium",
     };
-    
-    const response = await axios.post(`http://localhost:${PORT}/test-chat`, testData);
-    
+
+    const response = await axios.post(
+      `http://localhost:${PORT}/test-chat`,
+      testData
+    );
+
     console.log("✅ API Test Results:");
     console.log("Status:", response.status);
     console.log("Success:", response.data.success);
     console.log("Generated Content:", response.data.generatedContent);
     console.log("Metadata:", response.data.metadata);
-    
+
     console.log("\n🎉 DeepSeek API integration test completed successfully!");
     console.log("🔥 Your AI chat assistant is ready to use!");
-    
+
     server.close();
     process.exit(0);
-    
   } catch (error) {
     console.error("❌ Automated test failed:", error.message);
     server.close();
