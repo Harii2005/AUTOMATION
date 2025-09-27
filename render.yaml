@@ -2,8 +2,14 @@ services:
   - type: web
     name: social-media-automation
     env: static
-    buildCommand: cd Frontend && npm install && npm run build
-    staticPublishPath: Frontend/build
+    rootDir: Frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: build
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GENERATE_SOURCEMAP
+        value: false
     routes:
       - type: rewrite
         source: /*
