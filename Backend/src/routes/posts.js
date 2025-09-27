@@ -87,7 +87,12 @@ router.post("/schedule", authMiddleware, async (req, res) => {
 
     // Create scheduled posts for each platform
     const scheduledPosts = [];
+    
+    console.log(`📋 Processing ${targetPlatforms.length} target platform(s):`, targetPlatforms);
+    
     for (const platform of targetPlatforms) {
+      console.log(`🔍 Looking for ${platform} account for user ${userId}`);
+      
       // Get the social account for this platform
       const { data: socialAccount, error: socialError } = await supabase
         .from("social_accounts")
@@ -97,12 +102,19 @@ router.post("/schedule", authMiddleware, async (req, res) => {
         .eq("isActive", true) // camelCase for Supabase
         .single();
 
+      console.log(`📊 Social account query result for ${platform}:`, { 
+        data: socialAccount, 
+        error: socialError 
+      });
+
       if (socialError || !socialAccount) {
         console.warn(
-          `No connected ${platform} account found for user ${userId}`
+          `❌ No connected ${platform} account found for user ${userId}`
         );
         continue;
       }
+      
+      console.log(`✅ Found ${platform} account:`, socialAccount.id);
 
       // Create scheduled post with advanced options
       const { data: scheduledPost, error: postError } = await supabase
@@ -222,9 +234,60 @@ router.get("/scheduled", authMiddleware, async (req, res) => {
 
 // Get posts for calendar view (alias for scheduled)
 router.get("/calendar", authMiddleware, async (req, res) => {
-  // Redirect to scheduled posts endpoint
-  req.url = "/scheduled";
-  return router.handle(req, res);
+  try {
+    const { userId } = req.user;
+    const { start, end, platform } = req.query;
+
+    let query = supabase
+      .from("scheduled_posts")
+      .select(
+        `
+        *,
+        social_accounts(platform, accountName)
+      `
+      )
+      .eq("userId", userId);
+
+    // Add filters if provided
+    if (start) {
+      query = query.gte("scheduledTime", start);
+    }
+    if (end) {
+      query = query.lte("scheduledTime", end);
+    }
+    if (platform) {
+      query = query.eq("platform", platform.toUpperCase());
+    }
+
+    const { data: posts, error } = await query.order("scheduledTime", {
+      ascending: true,
+    });
+
+    if (error) {
+      console.error("Error fetching calendar posts:", error);
+      return res.status(500).json({ error: "Failed to fetch calendar posts" });
+    }
+
+    // Transform data for frontend compatibility
+    const transformedPosts = posts.map((post) => ({
+      id: post.id,
+      content: post.content,
+      mediaUrl: post.mediaUrl,
+      mediaType: post.mediaType,
+      scheduledAt: post.scheduledTime,
+      status: post.status.toLowerCase(),
+      platform: post.platform.toLowerCase(),
+      socialAccount: post.social_accounts,
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+      platforms: [post.platform], // For calendar compatibility
+    }));
+
+    res.json(transformedPosts);
+  } catch (error) {
+    console.error("Error in calendar endpoint:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 // Get a specific scheduled post

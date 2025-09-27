@@ -73,7 +73,25 @@ class ScheduledPostingService {
       }
 
       if (!scheduledPosts || scheduledPosts.length === 0) {
-        console.log("📭 No scheduled posts found");
+        // Check if there are any upcoming posts (not due yet)
+        const { data: upcomingPosts } = await supabase
+          .from("scheduled_posts")
+          .select("content, scheduledTime")
+          .eq("status", "PENDING")
+          .gt("scheduledTime", now.toISOString())
+          .order("scheduledTime", { ascending: true })
+          .limit(3);
+          
+        if (upcomingPosts && upcomingPosts.length > 0) {
+          console.log("📭 No posts due now, but found upcoming posts:");
+          upcomingPosts.forEach(post => {
+            const scheduledTime = new Date(post.scheduledTime);
+            const minutesUntil = Math.round((scheduledTime - now) / 60000);
+            console.log(`   ⏰ "${post.content}" in ${minutesUntil} minutes (${scheduledTime.toLocaleTimeString()})`);
+          });
+        } else {
+          console.log("📭 No scheduled posts found");
+        }
         return;
       }
 
@@ -95,7 +113,9 @@ class ScheduledPostingService {
       );
 
       // Update status to indicate we're processing (comment out since PROCESSING isn't in the current schema)
-      // await this.updatePostStatus(post.id, 'PROCESSING');      let result = null;
+      // await this.updatePostStatus(post.id, 'PROCESSING');
+      
+      let result = null;
       let success = false;
 
       // Route to appropriate platform handler

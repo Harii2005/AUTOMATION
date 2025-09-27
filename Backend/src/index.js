@@ -33,6 +33,11 @@ app.get("/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
+// Health check route for API
+app.get("/api/health", (req, res) => {
+  res.json({ status: "OK", timestamp: new Date().toISOString(), service: "automation-backend" });
+});
+
 // Test Supabase connection
 app.get("/test-supabase", async (req, res) => {
   try {

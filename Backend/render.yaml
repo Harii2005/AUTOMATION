@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: automation-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SUPABASE_URL
+        value: https://jeokwwumxpgdqvahgksh.supabase.co
+      - key: SUPABASE_ANON_KEY
+        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Implb2t3d3VteHBnZHF2YWhna3NoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1NDk0NTUsImV4cCI6MjA3NDEyNTQ1NX0.F6irEggOf2yKFQuzdN5IFFgybuP5L7Xxa-RHtUH8hbk
+      - key: JWT_SECRET
+        value: your-super-secret-jwt-key-change-this-in-production
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: TWITTER_CONSUMER_KEY
+        value: hley26irqfkMdyZ5Gy08YyLO1
+      - key: TWITTER_CONSUMER_SECRET
+        value: 8GNs2hRWv1YeZf6XOW8NkUEqXhw4KZpFbOEPMRhMDlZdaT7Y2p
+      - key: TWITTER_ACCESS_TOKEN
+        value: 1902337434228346880-k3v6LlR4XPM7BFm4iC3yLKlojc8F07
+      - key: TWITTER_ACCESS_TOKEN_SECRET
+        value: CajCqhskvKYAo9f2hNZ9cAEWKV7X7RXCQHj8kLKJzQSy2
