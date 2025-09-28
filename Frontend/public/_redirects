@@ -1,0 +1,7 @@
+# Render.com SPA Configuration
+# Add this file to your Frontend root directory as "_redirects"
+
+# This tells Render to serve index.html for all routes
+# This enables client-side routing for React Router
+
+/*    /index.html   200

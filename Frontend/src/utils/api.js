@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:5001/api";
+  process.env.REACT_APP_API_URL ||
+  "https://backend-automation-gcbv.onrender.com/api";
 
 // Create axios instance
 const api = axios.create({
