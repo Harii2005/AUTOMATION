@@ -209,7 +209,7 @@ const Calendar = () => {
                   <div className="mt-1">
                     <img
                       src={post.imageUrl}
-                      alt="Post image"
+                      alt="Scheduled content media"
                       className="max-w-full h-32 object-cover rounded-md border"
                       onError={(e) => {
                         e.target.style.display = "none";

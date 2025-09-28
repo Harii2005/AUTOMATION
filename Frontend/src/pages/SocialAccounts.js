@@ -143,7 +143,7 @@ const SocialAccounts = () => {
       twitter: `https://twitter.com/${account.username.replace("@", "")}`,
       instagram: `https://instagram.com/${account.username.replace("@", "")}`,
     };
-    const url = profileUrls[account.platform] || "#";
+    const url = urls[account.platform] || "#";
     if (url !== "#") {
       window.open(url, "_blank");
     } else {
