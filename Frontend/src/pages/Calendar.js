@@ -201,6 +201,28 @@ const Calendar = () => {
                 </p>
               </div>
 
+              {post.imageUrl && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Image
+                  </label>
+                  <div className="mt-1">
+                    <img 
+                      src={post.imageUrl} 
+                      alt="Post image" 
+                      className="max-w-full h-32 object-cover rounded-md border"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'block';
+                      }}
+                    />
+                    <p className="text-xs text-gray-500 mt-1" style={{display: 'none'}}>
+                      Image failed to load: {post.imageUrl}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-medium text-gray-700">
                   Scheduled Time
@@ -274,6 +296,7 @@ const Calendar = () => {
   const CreatePostModal = () => {
     const [formData, setFormData] = useState({
       content: "",
+      imageUrl: "",
       scheduledAt: selectedDate
         ? moment(selectedDate).format("YYYY-MM-DDTHH:mm")
         : "",
@@ -323,6 +346,7 @@ const Calendar = () => {
       try {
         const response = await api.post("/posts/post-now", {
           content: formData.content,
+          imageUrl: formData.imageUrl,
           platforms: formData.platforms,
         });
 
@@ -379,6 +403,24 @@ const Calendar = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700">
+                  Image URL (Optional)
+                </label>
+                <input
+                  type="url"
+                  value={formData.imageUrl}
+                  onChange={(e) =>
+                    setFormData({ ...formData, imageUrl: e.target.value })
+                  }
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="https://example.com/image.jpg"
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  Add an image URL for Instagram posts or Twitter posts with media
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
                   Scheduled Time
                 </label>
                 <input
@@ -397,7 +439,7 @@ const Calendar = () => {
                   Platforms
                 </label>
                 <div className="mt-2 space-y-2">
-                  {["facebook", "twitter", "instagram", "linkedin"].map(
+                  {["twitter", "instagram"].map(
                     (platform) => (
                       <label
                         key={platform}

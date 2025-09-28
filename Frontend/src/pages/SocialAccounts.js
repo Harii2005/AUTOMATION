@@ -18,13 +18,6 @@ const SocialAccounts = () => {
 
   const platforms = [
     {
-      id: "facebook",
-      name: "Facebook",
-      icon: "📘",
-      color: "bg-blue-600",
-      description: "Connect your Facebook page to schedule posts",
-    },
-    {
       id: "twitter",
       name: "Twitter",
       icon: "🐦",
@@ -37,13 +30,6 @@ const SocialAccounts = () => {
       icon: "📷",
       color: "bg-pink-600",
       description: "Post photos and stories to Instagram",
-    },
-    {
-      id: "linkedin",
-      name: "LinkedIn",
-      icon: "💼",
-      color: "bg-blue-700",
-      description: "Share professional content on LinkedIn",
     },
     {
       id: "youtube",
@@ -153,14 +139,10 @@ const SocialAccounts = () => {
   const handleViewProfile = (account) => {
     console.log(`Opening profile for ${account.platformName}...`);
     // In a real implementation, this would open the social media profile
-    const profileUrls = {
+    const urls = {
       twitter: `https://twitter.com/${account.username.replace("@", "")}`,
       instagram: `https://instagram.com/${account.username.replace("@", "")}`,
-      linkedin: `https://linkedin.com/in/${account.username.replace("@", "")}`,
-      facebook: `https://facebook.com/${account.username.replace("@", "")}`,
-    };
-
-    const url = profileUrls[account.platform] || "#";
+    };    const url = profileUrls[account.platform] || "#";
     if (url !== "#") {
       window.open(url, "_blank");
     } else {
