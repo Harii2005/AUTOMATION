@@ -1,4 +1,4 @@
-const express = require('express');
+const express = require("express");
 const { supabase } = require("./src/utils/database");
 const { authMiddleware } = require("./src/middleware/auth");
 
@@ -7,11 +7,11 @@ async function testTwitterConnection() {
   // Simulate the request object
   const mockReq = {
     user: {
-      userId: 'edade439-a996-4938-8b98-f52a303cff85' // User 'hariiii' who doesn't have Twitter connected yet
-    }
+      userId: "edade439-a996-4938-8b98-f52a303cff85", // User 'hariiii' who doesn't have Twitter connected yet
+    },
   };
 
-  console.log('🔗 Testing Twitter connection for user:', mockReq.user.userId);
+  console.log("🔗 Testing Twitter connection for user:", mockReq.user.userId);
 
   try {
     // Check if Twitter credentials are configured
@@ -30,15 +30,18 @@ async function testTwitterConnection() {
       .eq("platform", "TWITTER")
       .single();
 
-    console.log('Existing account check:', { data: existingAccount, error: checkError });
+    console.log("Existing account check:", {
+      data: existingAccount,
+      error: checkError,
+    });
 
     if (!existingAccount) {
       console.log("🔗 No existing account found, would create new one");
-      
+
       // This would normally get user info from Twitter API, but let's simulate
       const mockUserInfo = {
         id: "mock_twitter_id_" + Date.now(),
-        username: "mock_twitter_user"
+        username: "mock_twitter_user",
       };
 
       // Create new account (simulated)
@@ -55,15 +58,17 @@ async function testTwitterConnection() {
         .select()
         .single();
 
-      console.log('New account creation:', { data: newAccount, error: insertError });
-      
+      console.log("New account creation:", {
+        data: newAccount,
+        error: insertError,
+      });
+
       if (!insertError) {
         console.log("✅ Twitter account connected successfully!");
       }
     } else {
       console.log("ℹ️ Account already exists, would update it");
     }
-
   } catch (error) {
     console.error("💥 Error in Twitter connection test:", error);
   }
