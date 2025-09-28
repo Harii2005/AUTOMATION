@@ -7,6 +7,39 @@ const { authMiddleware } = require("../middleware/auth");
 
 const router = express.Router();
 
+// Get all connected social accounts for the authenticated user
+router.get("/accounts", authMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.user;
+    
+    const { data: accounts, error } = await supabase
+      .from("social_accounts")
+      .select("*")
+      .eq("userId", userId)
+      .eq("is_active", true);
+
+    if (error) {
+      console.error("Error fetching social accounts:", error);
+      return res.status(500).json({ error: "Failed to fetch social accounts" });
+    }
+
+    // Format accounts for response
+    const formattedAccounts = accounts.map(account => ({
+      id: account.id,
+      platform: account.platform.toLowerCase(),
+      username: account.username,
+      platformUserId: account.platform_user_id,
+      connectedAt: account.connected_at,
+      isActive: account.is_active
+    }));
+
+    res.json(formattedAccounts);
+  } catch (error) {
+    console.error("Error in /accounts endpoint:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // Encryption/Decryption utility functions
 const algorithm = "aes-256-cbc";
 const secretKey =
@@ -727,6 +760,107 @@ router.get("/linkedin/auth", authMiddleware, async (req, res) => {
     error: "LinkedIn integration not yet implemented",
     message: "Coming soon!",
   });
+});
+
+// Connect Twitter account using global credentials
+router.post("/connect-global-twitter", authMiddleware, async (req, res) => {
+  try {
+    console.log("🔗 Connecting Twitter with global credentials for user:", req.user.userId);
+    
+    const { userId } = req.user;
+
+    // Check if Twitter account already exists
+    const { data: existingAccount } = await supabase
+      .from("social_accounts")
+      .select("*")
+      .eq("userId", userId)
+      .eq("platform", "TWITTER")
+      .single();
+
+    if (existingAccount) {
+      return res.json({
+        connected: true,
+        account: {
+          platform: "twitter",
+          username: existingAccount.username || "Global Twitter Account",
+          id: existingAccount.platform_user_id || "global",
+        },
+        message: "Twitter account already connected",
+      });
+    }
+
+    // Create Twitter connection using global credentials
+    const twitterCredentials = {
+      consumer_key: process.env.TWITTER_API_KEY,
+      consumer_secret: process.env.TWITTER_API_SECRET,
+      access_token: process.env.TWITTER_ACCESS_TOKEN,
+      access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+    };
+
+    // Encrypt the credentials
+    const encryptedAccessToken = encrypt(twitterCredentials.access_token);
+    const encryptedAccessTokenSecret = encrypt(twitterCredentials.access_token_secret);
+
+    // Verify credentials work by testing API
+    let username = "GlobalTwitterBot";
+    try {
+      const twitterClient = new TwitterApi({
+        appKey: twitterCredentials.consumer_key,
+        appSecret: twitterCredentials.consumer_secret,
+        accessToken: twitterCredentials.access_token,
+        accessSecret: twitterCredentials.access_token_secret,
+      });
+
+      const userInfo = await twitterClient.v2.me();
+      username = userInfo.data.username;
+      console.log("✅ Twitter API verification successful:", userInfo.data);
+    } catch (apiError) {
+      console.warn("⚠️  Twitter API verification failed, but proceeding with connection:", apiError.message);
+    }
+
+    // Insert the social account
+    const { data: account, error } = await supabase
+      .from("social_accounts")
+      .insert({
+        userId: userId,
+        platform: "TWITTER",
+        platform_user_id: "global-twitter-account",
+        username: username,
+        access_token: encryptedAccessToken,
+        access_token_secret: encryptedAccessTokenSecret,
+        is_active: true,
+        connected_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating Twitter social account:", error);
+      return res.status(500).json({
+        error: "Failed to connect Twitter account",
+        details: error.message,
+      });
+    }
+
+    console.log("✅ Twitter account connected successfully:", account);
+
+    res.json({
+      connected: true,
+      account: {
+        platform: "twitter",
+        username: username,
+        id: account.platform_user_id,
+      },
+      message: "Twitter account connected using global credentials",
+    });
+
+  } catch (error) {
+    console.error("Error connecting global Twitter account:", error);
+    res.status(500).json({
+      error: "Failed to connect Twitter account",
+      message: error.message,
+    });
+  }
 });
 
 module.exports = router;
