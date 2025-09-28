@@ -11,7 +11,7 @@ const router = express.Router();
 router.get("/accounts", authMiddleware, async (req, res) => {
   try {
     const { userId } = req.user;
-    
+
     const { data: accounts, error } = await supabase
       .from("social_accounts")
       .select("*")
@@ -24,13 +24,13 @@ router.get("/accounts", authMiddleware, async (req, res) => {
     }
 
     // Format accounts for response
-    const formattedAccounts = accounts.map(account => ({
+    const formattedAccounts = accounts.map((account) => ({
       id: account.id,
       platform: account.platform.toLowerCase(),
       username: account.username,
       platformUserId: account.platform_user_id,
       connectedAt: account.connected_at,
-      isActive: account.is_active
+      isActive: account.is_active,
     }));
 
     res.json(formattedAccounts);
@@ -765,8 +765,11 @@ router.get("/linkedin/auth", authMiddleware, async (req, res) => {
 // Connect Twitter account using global credentials
 router.post("/connect-global-twitter", authMiddleware, async (req, res) => {
   try {
-    console.log("🔗 Connecting Twitter with global credentials for user:", req.user.userId);
-    
+    console.log(
+      "🔗 Connecting Twitter with global credentials for user:",
+      req.user.userId
+    );
+
     const { userId } = req.user;
 
     // Check if Twitter account already exists
@@ -799,7 +802,9 @@ router.post("/connect-global-twitter", authMiddleware, async (req, res) => {
 
     // Encrypt the credentials
     const encryptedAccessToken = encrypt(twitterCredentials.access_token);
-    const encryptedAccessTokenSecret = encrypt(twitterCredentials.access_token_secret);
+    const encryptedAccessTokenSecret = encrypt(
+      twitterCredentials.access_token_secret
+    );
 
     // Verify credentials work by testing API
     let username = "GlobalTwitterBot";
@@ -815,7 +820,10 @@ router.post("/connect-global-twitter", authMiddleware, async (req, res) => {
       username = userInfo.data.username;
       console.log("✅ Twitter API verification successful:", userInfo.data);
     } catch (apiError) {
-      console.warn("⚠️  Twitter API verification failed, but proceeding with connection:", apiError.message);
+      console.warn(
+        "⚠️  Twitter API verification failed, but proceeding with connection:",
+        apiError.message
+      );
     }
 
     // Insert the social account
@@ -853,7 +861,6 @@ router.post("/connect-global-twitter", authMiddleware, async (req, res) => {
       },
       message: "Twitter account connected using global credentials",
     });
-
   } catch (error) {
     console.error("Error connecting global Twitter account:", error);
     res.status(500).json({

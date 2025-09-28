@@ -23,7 +23,7 @@ async function connectTwitterAndScheduleTweet() {
 
     // Step 2: Connect Twitter account using global credentials
     console.log("\n🔗 Step 2: Connecting Twitter account...");
-    
+
     // First check if Twitter account is already connected
     try {
       const accountsResponse = await axios.get(
@@ -34,18 +34,20 @@ async function connectTwitterAndScheduleTweet() {
           },
         }
       );
-      
+
       console.log("📋 Current connected accounts:", accountsResponse.data);
-      
-      const twitterAccount = accountsResponse.data.find(account => 
-        account.platform.toLowerCase() === 'twitter'
+
+      const twitterAccount = accountsResponse.data.find(
+        (account) => account.platform.toLowerCase() === "twitter"
       );
-      
+
       if (twitterAccount) {
         console.log("✅ Twitter account already connected:", twitterAccount);
       } else {
-        console.log("🔗 No Twitter account found, connecting with global credentials...");
-        
+        console.log(
+          "🔗 No Twitter account found, connecting with global credentials..."
+        );
+
         const connectResponse = await axios.post(
           `${BACKEND_URL}/api/social/connect-global-twitter`,
           {},
@@ -55,13 +57,16 @@ async function connectTwitterAndScheduleTweet() {
             },
           }
         );
-        
+
         console.log("✅ Twitter connected successfully:", connectResponse.data);
       }
     } catch (accountError) {
-      console.log("⚠️  Error checking/connecting accounts:", accountError.response?.data || accountError.message);
+      console.log(
+        "⚠️  Error checking/connecting accounts:",
+        accountError.response?.data || accountError.message
+      );
       console.log("🔧 Proceeding to try manual connection...");
-      
+
       // Try to connect Twitter account directly
       try {
         const connectResponse = await axios.post(
@@ -73,10 +78,13 @@ async function connectTwitterAndScheduleTweet() {
             },
           }
         );
-        
+
         console.log("✅ Twitter connected successfully:", connectResponse.data);
       } catch (connectError) {
-        console.error("❌ Failed to connect Twitter:", connectError.response?.data || connectError.message);
+        console.error(
+          "❌ Failed to connect Twitter:",
+          connectError.response?.data || connectError.message
+        );
         console.log("🔧 Will try to schedule tweet anyway...");
       }
     }
@@ -98,7 +106,8 @@ async function connectTwitterAndScheduleTweet() {
 
     // Tweet content
     const tweetData = {
-      content: "🚀 4:00 PM Tweet! Testing automated scheduling system. #AutomationTest #TwitterBot",
+      content:
+        "🚀 4:00 PM Tweet! Testing automated scheduling system. #AutomationTest #TwitterBot",
       scheduledAt: scheduledTime.toISOString(),
       platforms: ["twitter"],
       postOptions: {
@@ -128,8 +137,9 @@ async function connectTwitterAndScheduleTweet() {
 
     console.log("\n✅ Tweet scheduled successfully!");
     console.log("Response:", response.data);
-    console.log(`🕐 Your tweet will be posted at ${scheduledTime.toLocaleString()}`);
-
+    console.log(
+      `🕐 Your tweet will be posted at ${scheduledTime.toLocaleString()}`
+    );
   } catch (error) {
     console.error("\n❌ Error:");
     if (error.response) {

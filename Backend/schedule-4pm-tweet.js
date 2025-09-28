@@ -37,7 +37,8 @@ async function schedule4PMTweet() {
 
     // Tweet content for 4:00 PM
     const tweetData = {
-      content: "🚀 4:00 PM Tweet! Testing automated scheduling system. #AutomationTest #TwitterBot",
+      content:
+        "🚀 4:00 PM Tweet! Testing automated scheduling system. #AutomationTest #TwitterBot",
       scheduledAt: scheduledTime.toISOString(),
       platforms: ["twitter"],
       postOptions: {
@@ -69,8 +70,10 @@ async function schedule4PMTweet() {
 
     console.log("\n✅ Tweet scheduled successfully!");
     console.log("Response:", response.data);
-    console.log(`🕐 Your tweet will be posted at ${scheduledTime.toLocaleString()}`);
-    
+    console.log(
+      `🕐 Your tweet will be posted at ${scheduledTime.toLocaleString()}`
+    );
+
     // Check if there are any scheduled posts
     console.log("\n📋 Checking all scheduled posts...");
     const scheduledPosts = await axios.get(
@@ -81,9 +84,8 @@ async function schedule4PMTweet() {
         },
       }
     );
-    
-    console.log("Scheduled posts:", scheduledPosts.data);
 
+    console.log("Scheduled posts:", scheduledPosts.data);
   } catch (error) {
     console.error("\n❌ Error scheduling tweet:");
     if (error.response) {
@@ -92,7 +94,7 @@ async function schedule4PMTweet() {
     } else {
       console.error("Error:", error.message);
     }
-    
+
     // Additional debugging
     console.log("\n🔍 Debug Information:");
     console.log("Full error:", JSON.stringify(error, null, 2));

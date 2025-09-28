@@ -8,13 +8,10 @@ async function postTweetAt4PM() {
     console.log("🐦 Posting scheduled 4:00 PM tweet...");
 
     // Login to get auth token
-    const loginResponse = await axios.post(
-      `${BACKEND_URL}/api/auth/login`,
-      {
-        email: "twittertest@example.com",
-        password: "testpass123",
-      }
-    );
+    const loginResponse = await axios.post(`${BACKEND_URL}/api/auth/login`, {
+      email: "twittertest@example.com",
+      password: "testpass123",
+    });
 
     const authToken = loginResponse.data.token;
     console.log("✅ Authenticated successfully");
@@ -23,7 +20,8 @@ async function postTweetAt4PM() {
     const tweetResponse = await axios.post(
       `${BACKEND_URL}/api/posts/post-now`,
       {
-        content: "🕐 4:00 PM Tweet! Automated scheduling system working perfectly! #AutomationSuccess #TwitterBot #4PMTweet",
+        content:
+          "🕐 4:00 PM Tweet! Automated scheduling system working perfectly! #AutomationSuccess #TwitterBot #4PMTweet",
         platform: "twitter",
       },
       {
@@ -37,12 +35,14 @@ async function postTweetAt4PM() {
     console.log("🎉 4:00 PM tweet posted successfully!");
     console.log("Response:", tweetResponse.data);
     console.log("Time posted:", new Date().toLocaleString());
-    
+
     // Exit the process after successful posting
     process.exit(0);
-    
   } catch (error) {
-    console.error("❌ Error posting 4:00 PM tweet:", error.response?.data || error.message);
+    console.error(
+      "❌ Error posting 4:00 PM tweet:",
+      error.response?.data || error.message
+    );
     process.exit(1);
   }
 }
@@ -67,23 +67,27 @@ function setup4PMTweetScheduler() {
 
   // Schedule for exactly 4:00 PM today
   const cronExpression = "0 16 * * *"; // At 4:00 PM every day
-  
+
   console.log("📅 Cron job scheduled for 4:00 PM (16:00)");
   console.log("🔄 Script will remain running until the tweet is posted...");
 
-  cron.schedule(cronExpression, () => {
-    const currentTime = new Date();
-    const currentHour = currentTime.getHours();
-    
-    // Only run if it's actually 4:00 PM
-    if (currentHour === 16) {
-      console.log("🕐 It's 4:00 PM! Posting tweet now...");
-      postTweetAt4PM();
+  cron.schedule(
+    cronExpression,
+    () => {
+      const currentTime = new Date();
+      const currentHour = currentTime.getHours();
+
+      // Only run if it's actually 4:00 PM
+      if (currentHour === 16) {
+        console.log("🕐 It's 4:00 PM! Posting tweet now...");
+        postTweetAt4PM();
+      }
+    },
+    {
+      scheduled: true,
+      timezone: "Asia/Kolkata", // Adjust timezone as needed
     }
-  }, {
-    scheduled: true,
-    timezone: "Asia/Kolkata" // Adjust timezone as needed
-  });
+  );
 
   // Also set a direct timeout for today's 4:00 PM
   const timeUntil4PM = targetTime - now;
