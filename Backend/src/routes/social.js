@@ -73,10 +73,25 @@ function decrypt(encryptedText) {
 
 // Instagram API functions
 const instagramAPI = {
-  async getUserInfo(accessToken) {
+  // New Instagram credentials
+  getAccessToken() {
+    return (
+      process.env.INSTAGRAM_ACCESS_TOKEN ||
+      "IGAASZBSOMqFQ5BZAFFWSE9NUW1ybktTYlVmeHl5S25OVzV2OTBTZAmNES19nVXJuSWNQVUx3SlJoS3c5dE4xTEFKUXJQT2k5Uk5GU3JqRzFUVnF4eW5Mdy1ibWNyRTM0U1R2ZA1hhVW9sSG51bnNpUWtJTU5pcDF0TlJ0ZAGs3Rm5jawZDZD"
+    );
+  },
+
+  getAppSecret() {
+    return (
+      process.env.INSTAGRAM_APP_SECRET || "62f6b8386809cbbef5dee0997bffb25c"
+    );
+  },
+
+  async getUserInfo(accessToken = null) {
     try {
+      const token = accessToken || this.getAccessToken();
       const response = await axios.get(
-        `https://graph.instagram.com/me?fields=id,username&access_token=${accessToken}`
+        `https://graph.instagram.com/me?fields=id,username,account_type,media_count&access_token=${token}`
       );
       return response.data;
     } catch (error) {
@@ -84,18 +99,60 @@ const instagramAPI = {
         "Instagram API Error:",
         error.response?.data || error.message
       );
-      throw new Error("Failed to get Instagram user info");
+      throw new Error(
+        "Failed to get Instagram user info: " +
+          (error.response?.data?.error?.message || error.message)
+      );
+    }
+  },
+
+  async getAccountInfo(accessToken = null) {
+    try {
+      const token = accessToken || this.getAccessToken();
+      const response = await axios.get(
+        `https://graph.instagram.com/me?fields=id,username,account_type,media_count,followers_count,follows_count&access_token=${token}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Instagram Account Info Error:",
+        error.response?.data || error.message
+      );
+      throw new Error(
+        "Failed to get Instagram account info: " +
+          (error.response?.data?.error?.message || error.message)
+      );
+    }
+  },
+
+  async getMedia(accessToken = null, limit = 10) {
+    try {
+      const token = accessToken || this.getAccessToken();
+      const response = await axios.get(
+        `https://graph.instagram.com/me/media?fields=id,caption,media_type,media_url,thumbnail_url,permalink,timestamp&limit=${limit}&access_token=${token}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Instagram Media Error:",
+        error.response?.data || error.message
+      );
+      throw new Error(
+        "Failed to get Instagram media: " +
+          (error.response?.data?.error?.message || error.message)
+      );
     }
   },
 
   async createMediaObject(accessToken, imageUrl, caption) {
     try {
+      const token = accessToken || this.getAccessToken();
       const response = await axios.post(
         `https://graph.instagram.com/me/media`,
         {
           image_url: imageUrl,
           caption: caption,
-          access_token: accessToken,
+          access_token: token,
         }
       );
       return response.data.id;
@@ -104,17 +161,21 @@ const instagramAPI = {
         "Instagram Media Creation Error:",
         error.response?.data || error.message
       );
-      throw new Error("Failed to create Instagram media object");
+      throw new Error(
+        "Failed to create Instagram media object: " +
+          (error.response?.data?.error?.message || error.message)
+      );
     }
   },
 
   async publishMedia(accessToken, creationId) {
     try {
+      const token = accessToken || this.getAccessToken();
       const response = await axios.post(
         `https://graph.instagram.com/me/media_publish`,
         {
           creation_id: creationId,
-          access_token: accessToken,
+          access_token: token,
         }
       );
       return response.data;
@@ -123,26 +184,53 @@ const instagramAPI = {
         "Instagram Publish Error:",
         error.response?.data || error.message
       );
-      throw new Error("Failed to publish Instagram media");
+      throw new Error(
+        "Failed to publish Instagram media: " +
+          (error.response?.data?.error?.message || error.message)
+      );
     }
   },
 
   async postToInstagram(accessToken, imageUrl, caption) {
     try {
+      const token = accessToken || this.getAccessToken();
+
       // Step 1: Create media object
-      const creationId = await this.createMediaObject(
-        accessToken,
-        imageUrl,
-        caption
-      );
+      const creationId = await this.createMediaObject(token, imageUrl, caption);
+      console.log("✅ Media object created with ID:", creationId);
 
       // Step 2: Publish media
-      const result = await this.publishMedia(accessToken, creationId);
+      const result = await this.publishMedia(token, creationId);
+      console.log("✅ Media published successfully:", result);
 
       return result;
     } catch (error) {
       console.error("Instagram Post Error:", error);
       throw error;
+    }
+  },
+
+  async testConnection(accessToken = null) {
+    try {
+      const token = accessToken || this.getAccessToken();
+      console.log("🔄 Testing Instagram API connection...");
+
+      // Test basic user info endpoint
+      const userInfo = await this.getUserInfo(token);
+      console.log("✅ Instagram API connection successful");
+
+      return {
+        success: true,
+        user: userInfo,
+        message: "Instagram API connection successful",
+      };
+    } catch (error) {
+      console.error("❌ Instagram API connection failed:", error.message);
+      return {
+        success: false,
+        error: error.message,
+        message: "Instagram API connection failed",
+      };
     }
   },
 };
@@ -217,11 +305,224 @@ const twitterAPI = {
   },
 };
 
+// Public test endpoint for Instagram API (no auth required)
+router.get("/instagram/test-public", async (req, res) => {
+  try {
+    console.log("🔄 Public Instagram API test...");
+
+    // Test the connection
+    const connectionTest = await instagramAPI.testConnection();
+
+    if (!connectionTest.success) {
+      return res.status(400).json({
+        success: false,
+        error: connectionTest.error,
+        message: "Instagram API connection failed",
+      });
+    }
+
+    // Get additional account info
+    try {
+      const accountInfo = await instagramAPI.getAccountInfo();
+      const media = await instagramAPI.getMedia(null, 3); // Get latest 3 posts
+
+      res.json({
+        success: true,
+        message: "Instagram API is working correctly",
+        connection: connectionTest,
+        account: accountInfo,
+        recentMedia: media,
+        credentials: {
+          hasAccessToken: !!instagramAPI.getAccessToken(),
+          hasAppSecret: !!instagramAPI.getAppSecret(),
+          tokenLength: instagramAPI.getAccessToken()
+            ? instagramAPI.getAccessToken().length
+            : 0,
+        },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (detailError) {
+      // Still return success if basic connection works
+      res.json({
+        success: true,
+        message:
+          "Instagram API basic connection works, but couldn't fetch detailed info",
+        connection: connectionTest,
+        detailError: detailError.message,
+        credentials: {
+          hasAccessToken: !!instagramAPI.getAccessToken(),
+          hasAppSecret: !!instagramAPI.getAppSecret(),
+          tokenLength: instagramAPI.getAccessToken()
+            ? instagramAPI.getAccessToken().length
+            : 0,
+        },
+        timestamp: new Date().toISOString(),
+      });
+    }
+  } catch (error) {
+    console.error("Public Instagram test error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Failed to test Instagram API",
+    });
+  }
+});
+
+// Test Instagram API connection and get account info
+router.get("/instagram/test", authMiddleware, async (req, res) => {
+  try {
+    console.log("🔄 Testing Instagram API...");
+
+    // Test the connection
+    const connectionTest = await instagramAPI.testConnection();
+
+    if (!connectionTest.success) {
+      return res.status(400).json({
+        success: false,
+        error: connectionTest.error,
+        message: "Instagram API connection failed",
+      });
+    }
+
+    // Get additional account info
+    try {
+      const accountInfo = await instagramAPI.getAccountInfo();
+      const media = await instagramAPI.getMedia(null, 5); // Get latest 5 posts
+
+      res.json({
+        success: true,
+        message: "Instagram API is working correctly",
+        connection: connectionTest,
+        account: accountInfo,
+        recentMedia: media,
+        credentials: {
+          hasAccessToken: !!instagramAPI.getAccessToken(),
+          hasAppSecret: !!instagramAPI.getAppSecret(),
+          tokenLength: instagramAPI.getAccessToken()
+            ? instagramAPI.getAccessToken().length
+            : 0,
+        },
+      });
+    } catch (detailError) {
+      // Still return success if basic connection works
+      res.json({
+        success: true,
+        message:
+          "Instagram API basic connection works, but couldn't fetch detailed info",
+        connection: connectionTest,
+        detailError: detailError.message,
+        credentials: {
+          hasAccessToken: !!instagramAPI.getAccessToken(),
+          hasAppSecret: !!instagramAPI.getAppSecret(),
+          tokenLength: instagramAPI.getAccessToken()
+            ? instagramAPI.getAccessToken().length
+            : 0,
+        },
+      });
+    }
+  } catch (error) {
+    console.error("Instagram test error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Failed to test Instagram API",
+    });
+  }
+});
+
+// Get Instagram account details
+router.get("/instagram/account", authMiddleware, async (req, res) => {
+  try {
+    const accountInfo = await instagramAPI.getAccountInfo();
+    const media = await instagramAPI.getMedia();
+
+    res.json({
+      success: true,
+      account: accountInfo,
+      media: media,
+      message: "Instagram account information retrieved successfully",
+    });
+  } catch (error) {
+    console.error("Error getting Instagram account info:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Failed to get Instagram account information",
+    });
+  }
+});
+
+// Test Instagram post functionality (without actually posting)
+router.post("/instagram/test-post", authMiddleware, async (req, res) => {
+  try {
+    const { imageUrl, caption } = req.body;
+
+    if (!imageUrl || !caption) {
+      return res.status(400).json({
+        success: false,
+        error: "Image URL and caption are required",
+        message: "Please provide both imageUrl and caption",
+      });
+    }
+
+    // Validate image URL is accessible
+    try {
+      const imageResponse = await axios.head(imageUrl);
+      const contentType = imageResponse.headers["content-type"];
+
+      if (!contentType || !contentType.startsWith("image/")) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid image URL - not an image",
+          message: `URL does not point to an image. Content-Type: ${contentType}`,
+        });
+      }
+    } catch (imageError) {
+      return res.status(400).json({
+        success: false,
+        error: "Image URL not accessible",
+        message: `Could not access image at ${imageUrl}. Error: ${imageError.message}`,
+      });
+    }
+
+    // Test connection first
+    const connectionTest = await instagramAPI.testConnection();
+
+    if (!connectionTest.success) {
+      return res.status(400).json({
+        success: false,
+        error: "Instagram API connection failed",
+        message: connectionTest.error,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Instagram post test successful - ready to post",
+      validation: {
+        imageUrl: "✅ Valid and accessible",
+        caption: `✅ Caption ready (${caption.length} characters)`,
+        apiConnection: "✅ Instagram API connected",
+        account: connectionTest.user,
+      },
+      note: "Use POST /instagram/post to actually publish this content",
+    });
+  } catch (error) {
+    console.error("Instagram post test error:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Instagram post test failed",
+    });
+  }
+});
+
 // Connect Instagram account with provided access token
 router.post("/instagram/connect", authMiddleware, async (req, res) => {
   try {
     const { userId } = req.user;
-    const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
+    const accessToken = instagramAPI.getAccessToken();
 
     if (!accessToken) {
       return res
@@ -229,8 +530,21 @@ router.post("/instagram/connect", authMiddleware, async (req, res) => {
         .json({ error: "Instagram access token not configured" });
     }
 
+    console.log("🔄 Connecting Instagram with new credentials...");
+
+    // Test the connection first
+    const connectionTest = await instagramAPI.testConnection(accessToken);
+
+    if (!connectionTest.success) {
+      return res.status(400).json({
+        success: false,
+        error: connectionTest.error,
+        message: "Failed to connect to Instagram API",
+      });
+    }
+
     // Get user info from Instagram
-    const userInfo = await instagramAPI.getUserInfo(accessToken);
+    const userInfo = connectionTest.user;
 
     // Store the encrypted token in database
     const encryptedToken = encrypt(accessToken);
@@ -239,9 +553,9 @@ router.post("/instagram/connect", authMiddleware, async (req, res) => {
     const { data: existingAccount } = await supabase
       .from("social_accounts")
       .select("*")
-      .eq("user_id", userId)
-      .eq("platform", "instagram")
-      .eq("platform_user_id", userInfo.id)
+      .eq("userId", userId)
+      .eq("platform", "INSTAGRAM")
+      .eq("accountId", userInfo.id)
       .single();
 
     if (existingAccount) {
@@ -257,6 +571,7 @@ router.post("/instagram/connect", authMiddleware, async (req, res) => {
         .eq("id", existingAccount.id);
 
       if (error) throw error;
+      console.log("✅ Updated existing Instagram account");
     } else {
       // Create new account
       const { error } = await supabase.from("social_accounts").insert({
@@ -269,6 +584,7 @@ router.post("/instagram/connect", authMiddleware, async (req, res) => {
       });
 
       if (error) throw error;
+      console.log("✅ Created new Instagram account connection");
     }
 
     res.json({
@@ -278,11 +594,17 @@ router.post("/instagram/connect", authMiddleware, async (req, res) => {
         platform: "instagram",
         username: userInfo.username,
         id: userInfo.id,
+        accountType: userInfo.account_type,
+        mediaCount: userInfo.media_count,
       },
     });
   } catch (error) {
     console.error("Error connecting Instagram:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Failed to connect Instagram account",
+    });
   }
 });
 
@@ -373,21 +695,69 @@ router.post("/instagram/post", authMiddleware, async (req, res) => {
         .json({ error: "Image URL and caption are required" });
     }
 
-    // Get Instagram account for user
-    const { data: account, error: fetchError } = await supabase
-      .from("social_accounts")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("platform", "instagram")
-      .eq("is_connected", true)
-      .single();
+    console.log("🔄 Posting to Instagram...", {
+      userId,
+      imageUrl: imageUrl.substring(0, 50) + "...",
+      captionLength: caption.length,
+    });
 
-    if (fetchError || !account) {
-      return res.status(400).json({ error: "Instagram account not connected" });
+    // First try to use user's connected account
+    let accessToken = instagramAPI.getAccessToken(); // fallback to global token
+
+    try {
+      // Get Instagram account for user
+      const { data: account, error: fetchError } = await supabase
+        .from("social_accounts")
+        .select("*")
+        .eq("userId", userId)
+        .eq("platform", "INSTAGRAM")
+        .eq("isActive", true)
+        .single();
+
+      if (!fetchError && account) {
+        // Use user's connected account token
+        accessToken = decrypt(account.accessToken);
+        console.log("✅ Using user-specific Instagram token");
+      } else {
+        console.log(
+          "⚠️  Using global Instagram token (user account not found)"
+        );
+      }
+    } catch (dbError) {
+      console.log(
+        "⚠️  Database error, using global Instagram token:",
+        dbError.message
+      );
     }
 
-    // Decrypt token
-    const accessToken = decrypt(account.encrypted_token);
+    if (!accessToken) {
+      return res.status(400).json({
+        success: false,
+        error: "No Instagram access token available",
+        message:
+          "Please connect your Instagram account or configure global credentials",
+      });
+    }
+
+    // Validate image URL
+    try {
+      const imageResponse = await axios.head(imageUrl);
+      const contentType = imageResponse.headers["content-type"];
+
+      if (!contentType || !contentType.startsWith("image/")) {
+        return res.status(400).json({
+          success: false,
+          error: "Invalid image URL - not an image",
+          message: `URL does not point to an image. Content-Type: ${contentType}`,
+        });
+      }
+    } catch (imageError) {
+      return res.status(400).json({
+        success: false,
+        error: "Image URL not accessible",
+        message: `Could not access image at ${imageUrl}`,
+      });
+    }
 
     // Post to Instagram
     const result = await instagramAPI.postToInstagram(
@@ -396,14 +766,21 @@ router.post("/instagram/post", authMiddleware, async (req, res) => {
       caption
     );
 
+    console.log("✅ Instagram post successful:", result);
+
     res.json({
       success: true,
       message: "Posted to Instagram successfully",
       post_id: result.id,
+      result: result,
     });
   } catch (error) {
     console.error("Error posting to Instagram:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: "Failed to post to Instagram",
+    });
   }
 });
 
