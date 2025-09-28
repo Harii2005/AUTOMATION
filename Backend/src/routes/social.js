@@ -481,7 +481,9 @@ router.get("/instagram/callback", async (req, res) => {
 
     if (error) {
       return res.redirect(
-        `http://localhost:3000/accounts?error=${encodeURIComponent(error)}`
+        `${
+          process.env.SITE_URL || "https://frontenddautomation.onrender.com"
+        }/accounts?error=${encodeURIComponent(error)}`
       );
     }
 
