@@ -207,16 +207,19 @@ const Calendar = () => {
                     Image
                   </label>
                   <div className="mt-1">
-                    <img 
-                      src={post.imageUrl} 
-                      alt="Post image" 
+                    <img
+                      src={post.imageUrl}
+                      alt="Post image"
                       className="max-w-full h-32 object-cover rounded-md border"
                       onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'block';
+                        e.target.style.display = "none";
+                        e.target.nextSibling.style.display = "block";
                       }}
                     />
-                    <p className="text-xs text-gray-500 mt-1" style={{display: 'none'}}>
+                    <p
+                      className="text-xs text-gray-500 mt-1"
+                      style={{ display: "none" }}
+                    >
                       Image failed to load: {post.imageUrl}
                     </p>
                   </div>
@@ -415,7 +418,8 @@ const Calendar = () => {
                   placeholder="https://example.com/image.jpg"
                 />
                 <p className="mt-1 text-xs text-gray-500">
-                  Add an image URL for Instagram posts or Twitter posts with media
+                  Add an image URL for Instagram posts or Twitter posts with
+                  media
                 </p>
               </div>
 
@@ -439,39 +443,37 @@ const Calendar = () => {
                   Platforms
                 </label>
                 <div className="mt-2 space-y-2">
-                  {["twitter", "instagram"].map(
-                    (platform) => (
-                      <label
-                        key={platform}
-                        className="inline-flex items-center mr-4"
-                      >
-                        <input
-                          type="checkbox"
-                          value={platform}
-                          checked={formData.platforms.includes(platform)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setFormData({
-                                ...formData,
-                                platforms: [...formData.platforms, platform],
-                              });
-                            } else {
-                              setFormData({
-                                ...formData,
-                                platforms: formData.platforms.filter(
-                                  (p) => p !== platform
-                                ),
-                              });
-                            }
-                          }}
-                          className="form-checkbox h-4 w-4 text-blue-600"
-                        />
-                        <span className="ml-2 text-sm text-gray-700 capitalize">
-                          {platform}
-                        </span>
-                      </label>
-                    )
-                  )}
+                  {["twitter", "instagram"].map((platform) => (
+                    <label
+                      key={platform}
+                      className="inline-flex items-center mr-4"
+                    >
+                      <input
+                        type="checkbox"
+                        value={platform}
+                        checked={formData.platforms.includes(platform)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setFormData({
+                              ...formData,
+                              platforms: [...formData.platforms, platform],
+                            });
+                          } else {
+                            setFormData({
+                              ...formData,
+                              platforms: formData.platforms.filter(
+                                (p) => p !== platform
+                              ),
+                            });
+                          }
+                        }}
+                        className="form-checkbox h-4 w-4 text-blue-600"
+                      />
+                      <span className="ml-2 text-sm text-gray-700 capitalize">
+                        {platform}
+                      </span>
+                    </label>
+                  ))}
                 </div>
               </div>
 

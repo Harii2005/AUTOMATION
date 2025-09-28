@@ -3,12 +3,14 @@
 ## ✅ Changes Made:
 
 ### 1. **Social Accounts Page (SocialAccounts.js)**
+
 - ✅ **Removed LinkedIn and Facebook** from platform options
 - ✅ **Kept only Twitter and Instagram** as active platforms
 - ✅ Removed unused LinkedIn/Facebook URL mappings
 - ✅ YouTube and TikTok kept for future expansion
 
 ### 2. **Calendar Scheduling (Calendar.js)**
+
 - ✅ **Added Image URL field** to the scheduling form
 - ✅ **Removed Facebook and LinkedIn** from platform selection
 - ✅ **Updated form state** to include `imageUrl` field
@@ -19,12 +21,14 @@
 ## 🎯 **Features Now Available:**
 
 ### **For Twitter:**
+
 - ✅ Text posts
 - ✅ Posts with images (via imageUrl)
 - ✅ Immediate posting
 - ✅ Scheduled posting
 
 ### **For Instagram:**
+
 - ✅ Posts with images (required for Instagram)
 - ✅ Text captions with hashtags
 - ✅ Immediate posting
@@ -33,6 +37,7 @@
 ## 📱 **User Experience:**
 
 ### **Scheduling Form:**
+
 ```
 ┌─────────────────────────────────────┐
 │ Content: [Text Area]                │
@@ -44,6 +49,7 @@
 ```
 
 ### **Image Support:**
+
 - **Image URL field** with validation
 - **Helper text** explaining usage
 - **Preview in event details**
@@ -53,6 +59,7 @@
 ## 🔧 **Technical Implementation:**
 
 ### **Form Data Structure:**
+
 ```javascript
 {
   content: "Post content with hashtags",
@@ -63,10 +70,12 @@
 ```
 
 ### **API Endpoints Called:**
+
 - `POST /api/posts/schedule` - For scheduled posts
 - `POST /api/posts/post-now` - For immediate posts
 
 ### **Backend Integration:**
+
 - ✅ Existing Instagram API endpoints ready
 - ✅ Backend handles `imageUrl` field
 - ✅ Image validation implemented
@@ -75,8 +84,9 @@
 ## 🎉 **Ready for Use!**
 
 Users can now:
+
 1. **Schedule posts** with images to Twitter and Instagram
-2. **Post immediately** with image support  
+2. **Post immediately** with image support
 3. **Remove distractions** (no LinkedIn/Facebook options)
 4. **See image previews** in scheduled post details
 5. **Use the simplified interface** focused on working platforms

@@ -142,7 +142,8 @@ const SocialAccounts = () => {
     const urls = {
       twitter: `https://twitter.com/${account.username.replace("@", "")}`,
       instagram: `https://instagram.com/${account.username.replace("@", "")}`,
-    };    const url = profileUrls[account.platform] || "#";
+    };
+    const url = profileUrls[account.platform] || "#";
     if (url !== "#") {
       window.open(url, "_blank");
     } else {
