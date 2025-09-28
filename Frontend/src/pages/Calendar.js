@@ -300,20 +300,77 @@ const Calendar = () => {
     const [formData, setFormData] = useState({
       content: "",
       imageUrl: "",
+      imageFile: null,
       scheduledAt: selectedDate
         ? moment(selectedDate).format("YYYY-MM-DDTHH:mm")
         : "",
       platforms: ["twitter"],
     });
+    const [imagePreview, setImagePreview] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Handle image file selection
+    const handleImageFileChange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+          addError('Please select a valid image file');
+          return;
+        }
+        
+        // Validate file size (10MB max)
+        if (file.size > 10 * 1024 * 1024) {
+          addError('Image file must be less than 10MB');
+          return;
+        }
+        
+        // Create preview URL
+        const previewUrl = URL.createObjectURL(file);
+        setImagePreview(previewUrl);
+        setFormData({ ...formData, imageFile: file, imageUrl: "" });
+      }
+    };
+
+    // Upload image file to backend
+    const uploadImageFile = async (file) => {
+      const uploadFormData = new FormData();
+      uploadFormData.append('image', file);
+      
+      try {
+        const response = await api.post('/posts/upload-image', uploadFormData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        return response.data.imageUrl;
+      } catch (error) {
+        console.error('Image upload failed:', error);
+        throw new Error('Failed to upload image');
+      }
+    };
 
     const handleSubmit = async (e) => {
       e.preventDefault();
       setIsSubmitting(true);
 
       try {
+        let finalImageUrl = formData.imageUrl;
+        
+        // Upload file if user selected a file
+        if (formData.imageFile) {
+          try {
+            finalImageUrl = await uploadImageFile(formData.imageFile);
+          } catch (uploadError) {
+            addError('Failed to upload image. Please try again.');
+            setIsSubmitting(false);
+            return;
+          }
+        }
+
         const response = await api.createPost({
           ...formData,
+          imageUrl: finalImageUrl,
           scheduledAt: new Date(formData.scheduledAt).toISOString(),
         });
 
@@ -347,9 +404,22 @@ const Calendar = () => {
       setIsSubmitting(true);
 
       try {
+        let finalImageUrl = formData.imageUrl;
+        
+        // Upload file if user selected a file
+        if (formData.imageFile) {
+          try {
+            finalImageUrl = await uploadImageFile(formData.imageFile);
+          } catch (uploadError) {
+            addError('Failed to upload image. Please try again.');
+            setIsSubmitting(false);
+            return;
+          }
+        }
+
         const response = await api.post("/posts/post-now", {
           content: formData.content,
-          imageUrl: formData.imageUrl,
+          imageUrl: finalImageUrl,
           platforms: formData.platforms,
         });
 
@@ -405,21 +475,79 @@ const Calendar = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Image URL (Optional)
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Image for Post
                 </label>
-                <input
-                  type="url"
-                  value={formData.imageUrl}
-                  onChange={(e) =>
-                    setFormData({ ...formData, imageUrl: e.target.value })
-                  }
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="https://example.com/image.jpg"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Add an image URL for Instagram posts or Twitter posts with
-                  media
+                
+                {/* Image Upload Section */}
+                <div className="space-y-3">
+                  {/* File Upload */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Upload Image File
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageFileChange}
+                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    />
+                  </div>
+                  
+                  {/* URL Input */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Or Image URL
+                    </label>
+                    <input
+                      type="url"
+                      value={formData.imageUrl}
+                      onChange={(e) => {
+                        setFormData({ ...formData, imageUrl: e.target.value, imageFile: null });
+                        setImagePreview(e.target.value);
+                      }}
+                      className="block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-sm"
+                      placeholder="https://example.com/image.jpg"
+                    />
+                  </div>
+                  
+                  {/* Image Preview */}
+                  {imagePreview && (
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">
+                        Preview
+                      </label>
+                      <div className="relative">
+                        <img
+                          src={imagePreview}
+                          alt="Upload preview"
+                          className="max-w-full h-32 object-cover rounded-md border"
+                          onError={() => {
+                            setImagePreview(null);
+                            if (formData.imageFile) {
+                              setFormData({ ...formData, imageFile: null });
+                            }
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setImagePreview(null);
+                            setFormData({ ...formData, imageUrl: "", imageFile: null });
+                          }}
+                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                <p className="mt-2 text-xs text-gray-500">
+                  📷 For Instagram: Image is required<br/>
+                  🐦 For Twitter: Image is optional<br/>
+                  💡 Recommended: JPG/PNG, max 10MB, min 320x320px
                 </p>
               </div>
 
