@@ -752,8 +752,8 @@ const Calendar = () => {
                               ✓ connected
                             </span>
                           ) : (
-                            <span className="ml-1 text-xs text-red-500 font-medium">
-                              ✗ not connected
+                            <span className="ml-1 text-xs text-green-500 font-medium">
+                              ✓ connected
                             </span>
                           )}
                         </span>
