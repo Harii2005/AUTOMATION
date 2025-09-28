@@ -16,7 +16,7 @@ router.get("/accounts", authMiddleware, async (req, res) => {
       .from("social_accounts")
       .select("*")
       .eq("userId", userId)
-      .eq("is_active", true);
+      .eq("isActive", true);
 
     if (error) {
       console.error("Error fetching social accounts:", error);
@@ -27,10 +27,10 @@ router.get("/accounts", authMiddleware, async (req, res) => {
     const formattedAccounts = accounts.map((account) => ({
       id: account.id,
       platform: account.platform.toLowerCase(),
-      username: account.username,
-      platformUserId: account.platform_user_id,
-      connectedAt: account.connected_at,
-      isActive: account.is_active,
+      username: account.accountName,
+      platformUserId: account.accountId,
+      connectedAt: account.createdAt,
+      isActive: account.isActive,
     }));
 
     res.json(formattedAccounts);
@@ -249,10 +249,10 @@ router.post("/instagram/connect", authMiddleware, async (req, res) => {
       const { error } = await supabase
         .from("social_accounts")
         .update({
-          encrypted_token: encryptedToken,
-          username: userInfo.username,
-          is_connected: true,
-          updated_at: new Date().toISOString(),
+          accessToken: encryptedToken,
+          accountName: userInfo.username,
+          isActive: true,
+          updatedAt: new Date().toISOString(),
         })
         .eq("id", existingAccount.id);
 
@@ -260,12 +260,12 @@ router.post("/instagram/connect", authMiddleware, async (req, res) => {
     } else {
       // Create new account
       const { error } = await supabase.from("social_accounts").insert({
-        user_id: userId,
-        platform: "instagram",
-        platform_user_id: userInfo.id,
-        username: userInfo.username,
-        encrypted_token: encryptedToken,
-        is_connected: true,
+        userId: userId,
+        platform: "INSTAGRAM",
+        accountId: userInfo.id,
+        accountName: userInfo.username,
+        accessToken: encryptedToken,
+        isActive: true,
       });
 
       if (error) throw error;
@@ -314,9 +314,9 @@ router.post("/twitter/connect", authMiddleware, async (req, res) => {
     const { data: existingAccount } = await supabase
       .from("social_accounts")
       .select("*")
-      .eq("user_id", userId)
-      .eq("platform", "twitter")
-      .eq("platform_user_id", userInfo.id)
+      .eq("userId", userId)
+      .eq("platform", "TWITTER")
+      .eq("accountId", userInfo.id)
       .single();
 
     if (existingAccount) {
@@ -324,10 +324,10 @@ router.post("/twitter/connect", authMiddleware, async (req, res) => {
       const { error } = await supabase
         .from("social_accounts")
         .update({
-          encrypted_token: encryptedToken,
-          username: userInfo.username,
-          is_connected: true,
-          updated_at: new Date().toISOString(),
+          accessToken: encryptedToken,
+          accountName: userInfo.username,
+          isActive: true,
+          updatedAt: new Date().toISOString(),
         })
         .eq("id", existingAccount.id);
 
@@ -335,12 +335,12 @@ router.post("/twitter/connect", authMiddleware, async (req, res) => {
     } else {
       // Create new account
       const { error } = await supabase.from("social_accounts").insert({
-        user_id: userId,
-        platform: "twitter",
-        platform_user_id: userInfo.id,
-        username: userInfo.username,
-        encrypted_token: encryptedToken,
-        is_connected: true,
+        userId: userId,
+        platform: "TWITTER",
+        accountId: userInfo.id,
+        accountName: userInfo.username,
+        accessToken: encryptedToken,
+        isActive: true,
       });
 
       if (error) throw error;
