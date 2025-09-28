@@ -281,12 +281,75 @@ class ScheduledPostingService {
   }
 
   async postToInstagram(post) {
-    // Placeholder for Instagram implementation
-    console.log("📌 Instagram posting not yet implemented");
-    return {
-      success: false,
-      error: "Instagram posting not yet implemented",
-    };
+    try {
+      const axios = require("axios");
+
+      // Instagram API configuration
+      const INSTAGRAM_ACCESS_TOKEN =
+        process.env.INSTAGRAM_ACCESS_TOKEN ||
+        "IGAASZBSOMqFQ5BZAFFBSUVlQXpvSjBpUlVOTWV1TzBod2dwVDFXajc3ZATJxamN4S1ZAXazNiZADlOTmh3cDNsbFo5SEd6cEtsdVpWZAXpmLUpmckNGWjdENzAzZAE5YZAVUtejdOU0NqM09idWcwS2thMFgzS19rREJCUS1pekxWTFowWQZDZD";
+
+      console.log(`🔄 Posting to Instagram for post ${post.id}`);
+
+      if (!post.mediaUrl) {
+        return {
+          success: false,
+          error: "Instagram requires an image URL for posting",
+        };
+      }
+
+      // Step 1: Create media object
+      console.log("📸 Creating Instagram media object...");
+      const createResponse = await axios.post(
+        `https://graph.instagram.com/me/media`,
+        {
+          image_url: post.mediaUrl,
+          caption: post.content,
+          access_token: INSTAGRAM_ACCESS_TOKEN,
+        }
+      );
+
+      const creationId = createResponse.data.id;
+      console.log(`✅ Media object created with ID: ${creationId}`);
+
+      // Step 2: Publish media
+      console.log("� Publishing Instagram media...");
+      const publishResponse = await axios.post(
+        `https://graph.instagram.com/me/media_publish`,
+        {
+          creation_id: creationId,
+          access_token: INSTAGRAM_ACCESS_TOKEN,
+        }
+      );
+
+      console.log(
+        `✅ Instagram post published with ID: ${publishResponse.data.id}`
+      );
+
+      return {
+        success: true,
+        platformPostId: publishResponse.data.id,
+        data: publishResponse.data,
+        creationId: creationId,
+      };
+    } catch (error) {
+      console.error(
+        "❌ Instagram posting error:",
+        error.response?.data || error.message
+      );
+
+      let errorMessage = "Failed to post to Instagram";
+      if (error.response?.data?.error?.message) {
+        errorMessage = error.response.data.error.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
   }
 
   async updatePostStatus(postId, status, error = null, platformPostId = null) {

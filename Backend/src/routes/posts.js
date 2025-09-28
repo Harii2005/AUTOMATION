@@ -527,7 +527,7 @@ router.post("/post-now", authMiddleware, async (req, res) => {
         if (platform.toLowerCase() === "twitter") {
           // Use the existing Twitter posting functionality
           const twitterResponse = await fetch(
-            `http://localhost:5001/api/social/twitter/post`,
+            `https://backendautomationn.onrender.com/api/social/twitter/post`,
             {
               method: "POST",
               headers: {
@@ -547,8 +547,31 @@ router.post("/post-now", authMiddleware, async (req, res) => {
             success: twitterResult.success,
             data: twitterResult,
           });
+        } else if (platform.toLowerCase() === "instagram") {
+          // Use the existing Instagram posting functionality
+          const instagramResponse = await fetch(
+            `https://backendautomationn.onrender.com/api/social/instagram/post`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: req.headers.authorization,
+              },
+              body: JSON.stringify({
+                imageUrl: mediaUrl,
+                caption: content,
+              }),
+            }
+          );
+
+          const instagramResult = await instagramResponse.json();
+          results.push({
+            platform: "instagram",
+            success: instagramResult.success,
+            data: instagramResult,
+          });
         }
-        // Add other platforms here (Instagram, LinkedIn, etc.)
+        // Add other platforms here (LinkedIn, etc.)
       } catch (platformError) {
         console.error(`Error posting to ${platform}:`, platformError);
         results.push({
