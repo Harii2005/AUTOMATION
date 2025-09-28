@@ -80,6 +80,7 @@ router.post("/schedule", authMiddleware, async (req, res) => {
 
     const {
       content,
+      imageUrl, // Frontend sends imageUrl, not mediaUrl
       mediaUrl,
       mediaType,
       scheduledAt,
@@ -87,6 +88,9 @@ router.post("/schedule", authMiddleware, async (req, res) => {
       postOptions = {}, // New: Advanced posting options
     } = req.body;
     const { userId } = req.user;
+
+    // Use imageUrl if provided, fallback to mediaUrl for compatibility
+    const finalMediaUrl = imageUrl || mediaUrl;
 
     // Extract advanced options
     const {
@@ -106,10 +110,27 @@ router.post("/schedule", authMiddleware, async (req, res) => {
     }
 
     // Validate media if provided
-    if (mediaUrl && !mediaType) {
-      return res.status(400).json({
-        error: "Media type is required when media URL is provided",
-      });
+    if (finalMediaUrl && !mediaType) {
+      // Auto-detect media type from URL if not provided
+      const urlExtension = finalMediaUrl.split(".").pop().toLowerCase();
+      let detectedType = null;
+      if (["jpg", "jpeg", "png", "gif", "webp"].includes(urlExtension)) {
+        detectedType = "IMAGE";
+      } else if (["mp4", "mov", "avi", "wmv"].includes(urlExtension)) {
+        detectedType = "VIDEO";
+      }
+
+      if (detectedType) {
+        console.log(
+          `Auto-detected media type: ${detectedType} from URL: ${finalMediaUrl}`
+        );
+      } else {
+        console.log("Setting default media type to IMAGE");
+        detectedType = "IMAGE"; // Default to IMAGE for social media posts
+      }
+
+      // Update mediaType for later use
+      req.body.mediaType = detectedType;
     }
 
     // Validate media type
@@ -193,8 +214,11 @@ router.post("/schedule", authMiddleware, async (req, res) => {
           userId: userId,
           socialAccountId: socialAccount.id,
           content: content,
-          mediaUrl: mediaUrl || null,
-          mediaType: mediaType ? mediaType.toUpperCase() : null,
+          mediaUrl: finalMediaUrl || null, // Use the resolved media URL
+          mediaType:
+            req.body.mediaType || mediaType
+              ? (req.body.mediaType || mediaType).toUpperCase()
+              : null,
           scheduledTime: scheduledDate.toISOString(),
           status: "PENDING",
           platform: platform.toUpperCase(),
@@ -285,14 +309,15 @@ router.get("/scheduled", authMiddleware, async (req, res) => {
     const transformedPosts = posts.map((post) => ({
       id: post.id,
       content: post.content,
-      mediaUrl: post.media_url,
-      mediaType: post.media_type,
-      scheduledAt: post.scheduled_time,
+      mediaUrl: post.mediaUrl,
+      imageUrl: post.mediaUrl, // Add imageUrl for frontend compatibility
+      mediaType: post.mediaType,
+      scheduledAt: post.scheduledTime,
       status: post.status,
       platform: post.platform,
       platforms: [post.platform], // For calendar compatibility
-      createdAt: post.created_at,
-      updatedAt: post.updated_at,
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
     }));
 
     res.json({
@@ -345,15 +370,16 @@ router.get("/calendar", authMiddleware, async (req, res) => {
     const transformedPosts = posts.map((post) => ({
       id: post.id,
       content: post.content,
-      mediaUrl: post.mediaUrl,
-      mediaType: post.mediaType,
-      scheduledAt: post.scheduledTime,
+      mediaUrl: post.mediaUrl, // Use camelCase from database
+      imageUrl: post.mediaUrl, // Add imageUrl for frontend compatibility
+      mediaType: post.mediaType, // Use camelCase from database
+      scheduledAt: post.scheduledTime, // Map scheduledTime to scheduledAt for frontend
       status: post.status.toLowerCase(),
       platform: post.platform.toLowerCase(),
       socialAccount: post.social_accounts,
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
-      platforms: [post.platform], // For calendar compatibility
+      platforms: [post.platform.toLowerCase()], // For calendar compatibility
     }));
 
     res.json(transformedPosts);
@@ -512,12 +538,15 @@ router.delete("/scheduled/:id", authMiddleware, async (req, res) => {
 // Post immediately to social media
 router.post("/post-now", authMiddleware, async (req, res) => {
   try {
-    const { content, mediaUrl, platforms = ["twitter"] } = req.body;
+    const { content, imageUrl, mediaUrl, platforms = ["twitter"] } = req.body;
     const { userId } = req.user;
 
     if (!content) {
       return res.status(400).json({ error: "Content is required" });
     }
+
+    // Use imageUrl if provided, fallback to mediaUrl
+    const finalImageUrl = imageUrl || mediaUrl;
 
     const results = [];
 
@@ -527,7 +556,7 @@ router.post("/post-now", authMiddleware, async (req, res) => {
         if (platform.toLowerCase() === "twitter") {
           // Use the existing Twitter posting functionality
           const twitterResponse = await fetch(
-            `https://backendautomationn.onrender.com/api/social/twitter/post`,
+            `http://localhost:5001/api/social/twitter/post`,
             {
               method: "POST",
               headers: {
@@ -536,7 +565,7 @@ router.post("/post-now", authMiddleware, async (req, res) => {
               },
               body: JSON.stringify({
                 text: content,
-                imageUrl: mediaUrl,
+                imageUrl: finalImageUrl,
               }),
             }
           );
@@ -548,9 +577,19 @@ router.post("/post-now", authMiddleware, async (req, res) => {
             data: twitterResult,
           });
         } else if (platform.toLowerCase() === "instagram") {
+          // Instagram requires an image
+          if (!finalImageUrl) {
+            results.push({
+              platform: "instagram",
+              success: false,
+              error: "Instagram posts require an image URL",
+            });
+            continue;
+          }
+
           // Use the existing Instagram posting functionality
           const instagramResponse = await fetch(
-            `https://backendautomationn.onrender.com/api/social/instagram/post`,
+            `http://localhost:5001/api/social/instagram/post`,
             {
               method: "POST",
               headers: {
@@ -558,7 +597,7 @@ router.post("/post-now", authMiddleware, async (req, res) => {
                 Authorization: req.headers.authorization,
               },
               body: JSON.stringify({
-                imageUrl: mediaUrl,
+                imageUrl: finalImageUrl,
                 caption: content,
               }),
             }

@@ -5,7 +5,7 @@ async function testScheduledPostingFix() {
     "🔄 Testing scheduled posting fix for both Instagram and Twitter...\n"
   );
 
-  const BACKEND_URL = "https://backendautomationn.onrender.com";
+  const BACKEND_URL = "http://localhost:5001";
 
   // Test Instagram posting directly
   console.log("📸 Testing Instagram posting directly...");

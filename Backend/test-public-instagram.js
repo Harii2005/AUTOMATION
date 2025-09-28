@@ -1,7 +1,7 @@
 const axios = require("axios");
 
 async function testPublicInstagramEndpoint() {
-  const BASE_URL = "https://backendautomationn.onrender.com/api/social";
+  const BASE_URL = "http://localhost:5001/api/social";
 
   console.log("🔄 Testing public Instagram API endpoint...\n");
 

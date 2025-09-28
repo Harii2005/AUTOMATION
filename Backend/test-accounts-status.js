@@ -3,7 +3,7 @@ const axios = require("axios");
 async function testSocialAccountsStatus() {
   console.log("🔄 Testing social accounts status...\n");
 
-  const BACKEND_URL = "https://backendautomationn.onrender.com";
+  const BACKEND_URL = "http://localhost:5001";
 
   try {
     console.log("📊 Checking Instagram connection status...");

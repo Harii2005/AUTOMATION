@@ -1,8 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  process.env.REACT_APP_API_URL ||
-  "https://backendautomationn.onrender.com/api";
+  process.env.REACT_APP_API_URL || "http://localhost:5001/api";
 
 // Create axios instance
 const api = axios.create({
@@ -59,10 +58,12 @@ export const usersAPI = {
 // Social Media API
 export const socialAPI = {
   getAccounts: () => api.get("/social"),
+  getStatus: () => api.get("/social/status"), // New: Get platform connection status without auth
   getTwitterAuth: () => api.get("/social/twitter/auth"),
   getLinkedInAuth: () => api.get("/social/linkedin/auth"),
   getInstagramAuth: () => api.get("/social/instagram/auth"),
   disconnectAccount: (platform) => api.delete(`/social/${platform}`),
+  quickSetup: () => api.post("/social/quick-setup"), // New: Auto-connect both platforms
 };
 
 // Chat API
@@ -107,7 +108,9 @@ export const apiClient = {
 
   // Social media methods
   getSocialAccounts: () => socialAPI.getAccounts(),
+  getSocialStatus: () => socialAPI.getStatus(), // New: Check platform status
   connectSocialAccount: (platform) => socialAPI.getTwitterAuth(), // Mock for now
+  quickSetupSocial: () => socialAPI.quickSetup(), // New: Auto-connect platforms
   disconnectSocialAccount: (accountId) =>
     socialAPI.disconnectAccount(accountId),
 

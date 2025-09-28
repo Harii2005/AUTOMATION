@@ -308,6 +308,98 @@ const Calendar = () => {
     });
     const [imagePreview, setImagePreview] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [socialAccounts, setSocialAccounts] = useState([]);
+    const [loadingAccounts, setLoadingAccounts] = useState(true);
+
+    // Load social accounts when modal opens
+    useEffect(() => {
+      const loadSocialAccounts = async () => {
+        try {
+          // First try to get authenticated user accounts
+          let accounts = [];
+          try {
+            const response = await api.get("/social");
+            accounts = response.data || [];
+          } catch (authError) {
+            // If auth fails, check global platform status
+            console.log("Auth failed, checking global status...");
+            try {
+              const statusResponse = await api.getSocialStatus();
+              const status = statusResponse.data?.status || {};
+
+              // Create mock accounts based on platform status
+              accounts = [];
+              if (status.instagram?.connected) {
+                accounts.push({
+                  id: "global-instagram",
+                  platform: "instagram",
+                  isConnected: true,
+                  accountName:
+                    status.instagram.account?.username || "Instagram Connected",
+                });
+              } else {
+                accounts.push({
+                  id: null,
+                  platform: "instagram",
+                  isConnected: false,
+                  accountName: null,
+                });
+              }
+
+              if (status.twitter?.connected) {
+                accounts.push({
+                  id: "global-twitter",
+                  platform: "twitter",
+                  isConnected: true,
+                  accountName:
+                    status.twitter.account?.username || "Twitter Connected",
+                });
+              } else {
+                accounts.push({
+                  id: null,
+                  platform: "twitter",
+                  isConnected: false,
+                  accountName: null,
+                });
+              }
+            } catch (statusError) {
+              console.log("Status check also failed, using defaults");
+              // Default to not connected
+              accounts = [
+                {
+                  id: null,
+                  platform: "instagram",
+                  isConnected: false,
+                  accountName: null,
+                },
+                {
+                  id: null,
+                  platform: "twitter",
+                  isConnected: false,
+                  accountName: null,
+                },
+              ];
+            }
+          }
+
+          setSocialAccounts(accounts);
+        } catch (error) {
+          console.error("Error loading social accounts:", error);
+        } finally {
+          setLoadingAccounts(false);
+        }
+      };
+
+      if (showCreateModal) {
+        loadSocialAccounts();
+      }
+    }, [showCreateModal]);
+
+    // Get connection status for a platform
+    const getPlatformConnectionStatus = (platform) => {
+      const account = socialAccounts.find((acc) => acc.platform === platform);
+      return account && account.isConnected && account.id;
+    };
 
     // Handle image file selection
     const handleImageFileChange = (e) => {
@@ -355,6 +447,32 @@ const Calendar = () => {
       setIsSubmitting(true);
 
       try {
+        // First, check if user has connected social accounts for selected platforms
+        const socialAccountsResponse = await api.get("/social");
+        const connectedAccounts = socialAccountsResponse.data || [];
+
+        // Filter to get actually connected accounts (not just placeholders)
+        const actuallyConnectedPlatforms = connectedAccounts
+          .filter((account) => account && account.isConnected && account.id)
+          .map((account) => account.platform);
+
+        // Check if selected platforms are connected
+        const unconnectedPlatforms = formData.platforms.filter(
+          (platform) => !actuallyConnectedPlatforms.includes(platform)
+        );
+
+        if (unconnectedPlatforms.length > 0) {
+          const platformNames = unconnectedPlatforms
+            .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+            .join(", ");
+
+          addError(
+            `Please connect your ${platformNames} account(s) first. Go to Social Accounts to connect your accounts before scheduling posts.`
+          );
+          setIsSubmitting(false);
+          return;
+        }
+
         let finalImageUrl = formData.imageUrl;
 
         // Upload file if user selected a file
@@ -581,38 +699,67 @@ const Calendar = () => {
                   Platforms
                 </label>
                 <div className="mt-2 space-y-2">
-                  {["twitter", "instagram"].map((platform) => (
-                    <label
-                      key={platform}
-                      className="inline-flex items-center mr-4"
-                    >
-                      <input
-                        type="checkbox"
-                        value={platform}
-                        checked={formData.platforms.includes(platform)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setFormData({
-                              ...formData,
-                              platforms: [...formData.platforms, platform],
-                            });
-                          } else {
-                            setFormData({
-                              ...formData,
-                              platforms: formData.platforms.filter(
-                                (p) => p !== platform
-                              ),
-                            });
-                          }
-                        }}
-                        className="form-checkbox h-4 w-4 text-blue-600"
-                      />
-                      <span className="ml-2 text-sm text-gray-700 capitalize">
-                        {platform}
-                      </span>
-                    </label>
-                  ))}
+                  {["twitter", "instagram"].map((platform) => {
+                    const isConnected = getPlatformConnectionStatus(platform);
+                    return (
+                      <label
+                        key={platform}
+                        className="inline-flex items-center mr-4"
+                      >
+                        <input
+                          type="checkbox"
+                          value={platform}
+                          checked={formData.platforms.includes(platform)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setFormData({
+                                ...formData,
+                                platforms: [...formData.platforms, platform],
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                platforms: formData.platforms.filter(
+                                  (p) => p !== platform
+                                ),
+                              });
+                            }
+                          }}
+                          className="form-checkbox h-4 w-4 text-blue-600"
+                          disabled={loadingAccounts}
+                        />
+                        <span className="ml-2 text-sm text-gray-700 capitalize flex items-center">
+                          {platform}
+                          {loadingAccounts ? (
+                            <span className="ml-1 text-xs text-gray-400">
+                              (checking...)
+                            </span>
+                          ) : isConnected ? (
+                            <span className="ml-1 text-xs text-green-600 font-medium">
+                              ✓ connected
+                            </span>
+                          ) : (
+                            <span className="ml-1 text-xs text-red-500 font-medium">
+                              ✗ not connected
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    );
+                  })}
                 </div>
+                {!loadingAccounts && socialAccounts.length > 0 && (
+                  <div className="mt-2 text-xs text-gray-500">
+                    💡 You need to connect your social accounts before
+                    scheduling posts.{" "}
+                    <a
+                      href="/social-accounts"
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      Go to Social Accounts
+                    </a>
+                  </div>
+                )}
               </div>
 
               <div className="mt-6 flex space-x-3">

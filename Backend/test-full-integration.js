@@ -3,7 +3,7 @@ const axios = require("axios");
 async function testBackendInstagramIntegration() {
   console.log("🔄 Testing complete backend Instagram integration...\n");
 
-  const BACKEND_URL = "https://backendautomationn.onrender.com";
+  const BACKEND_URL = "http://localhost:5001";
 
   // Test the Instagram posting endpoint via your backend
   try {

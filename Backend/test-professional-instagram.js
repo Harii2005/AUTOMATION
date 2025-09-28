@@ -108,8 +108,7 @@ async function testInstagramAPIProfessional() {
     console.log("\n🌐 Step 4: Testing with potential backend upload URL...");
 
     // This would be the format your backend generates
-    const backendImageUrl =
-      "https://backendautomationn.onrender.com/uploads/test-image.jpg";
+    const backendImageUrl = "http://localhost:5001/uploads/test-image.jpg";
     console.log("🔗 Testing backend URL format:", backendImageUrl);
 
     // Check if the URL is accessible

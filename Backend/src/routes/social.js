@@ -264,7 +264,25 @@ const twitterAPI = {
       return tweet.data;
     } catch (error) {
       console.error("Twitter Post Error:", error);
-      throw new Error("Failed to post tweet");
+
+      // Handle specific Twitter API errors
+      if (error.code === 429) {
+        throw new Error(
+          "Twitter rate limit exceeded. Please wait 15 minutes before posting again."
+        );
+      } else if (error.code === 401) {
+        throw new Error(
+          "Twitter authentication failed. Please check API credentials."
+        );
+      } else if (error.code === 403) {
+        throw new Error(
+          "Twitter posting forbidden. Check if account has posting permissions."
+        );
+      } else if (error.data && error.data.detail) {
+        throw new Error(`Twitter API error: ${error.data.detail}`);
+      } else {
+        throw new Error(`Failed to post tweet: ${error.message}`);
+      }
     }
   },
 
@@ -278,7 +296,25 @@ const twitterAPI = {
       return tweet.data;
     } catch (error) {
       console.error("Twitter Media Post Error:", error);
-      throw new Error("Failed to post tweet with media");
+
+      // Handle specific Twitter API errors
+      if (error.code === 429) {
+        throw new Error(
+          "Twitter rate limit exceeded. Please wait 15 minutes before posting again."
+        );
+      } else if (error.code === 401) {
+        throw new Error(
+          "Twitter authentication failed. Please check API credentials."
+        );
+      } else if (error.code === 403) {
+        throw new Error(
+          "Twitter posting forbidden. Check if account has posting permissions."
+        );
+      } else if (error.data && error.data.detail) {
+        throw new Error(`Twitter API error: ${error.data.detail}`);
+      } else {
+        throw new Error(`Failed to post tweet with media: ${error.message}`);
+      }
     }
   },
 
@@ -1162,8 +1198,8 @@ router.post("/connect-global-twitter", authMiddleware, async (req, res) => {
         connected: true,
         account: {
           platform: "twitter",
-          username: existingAccount.username || "Global Twitter Account",
-          id: existingAccount.platform_user_id || "global",
+          username: existingAccount.accountName || "Global Twitter Account",
+          id: existingAccount.accountId || "global",
         },
         message: "Twitter account already connected",
       });
@@ -1179,9 +1215,6 @@ router.post("/connect-global-twitter", authMiddleware, async (req, res) => {
 
     // Encrypt the credentials
     const encryptedAccessToken = encrypt(twitterCredentials.access_token);
-    const encryptedAccessTokenSecret = encrypt(
-      twitterCredentials.access_token_secret
-    );
 
     // Verify credentials work by testing API
     let username = "GlobalTwitterBot";
@@ -1209,12 +1242,10 @@ router.post("/connect-global-twitter", authMiddleware, async (req, res) => {
       .insert({
         userId: userId,
         platform: "TWITTER",
-        platform_user_id: "global-twitter-account",
-        username: username,
-        access_token: encryptedAccessToken,
-        access_token_secret: encryptedAccessTokenSecret,
-        is_active: true,
-        connected_at: new Date().toISOString(),
+        accountId: "global-twitter-account",
+        accountName: username,
+        accessToken: encryptedAccessToken,
+        isActive: true,
       })
       .select()
       .single();
@@ -1234,7 +1265,7 @@ router.post("/connect-global-twitter", authMiddleware, async (req, res) => {
       account: {
         platform: "twitter",
         username: username,
-        id: account.platform_user_id,
+        id: account.accountId,
       },
       message: "Twitter account connected using global credentials",
     });
@@ -1242,6 +1273,343 @@ router.post("/connect-global-twitter", authMiddleware, async (req, res) => {
     console.error("Error connecting global Twitter account:", error);
     res.status(500).json({
       error: "Failed to connect Twitter account",
+      message: error.message,
+    });
+  }
+});
+
+// Auto-connect both Twitter and Instagram for user
+router.post("/connect-all", authMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.user;
+    const results = { twitter: null, instagram: null };
+
+    // Connect Twitter
+    try {
+      const twitterResponse = await fetch(
+        `http://localhost:5001/api/social/twitter/connect`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: req.headers.authorization,
+          },
+        }
+      );
+
+      const twitterResult = await twitterResponse.json();
+      results.twitter = twitterResult;
+    } catch (twitterError) {
+      results.twitter = { error: twitterError.message };
+    }
+
+    // Connect Instagram
+    try {
+      const instagramResponse = await fetch(
+        `http://localhost:5001/api/social/instagram/connect`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: req.headers.authorization,
+          },
+        }
+      );
+
+      const instagramResult = await instagramResponse.json();
+      results.instagram = instagramResult;
+    } catch (instagramError) {
+      results.instagram = { error: instagramError.message };
+    }
+
+    const successCount = [results.twitter, results.instagram].filter(
+      (r) => r?.success
+    ).length;
+
+    res.json({
+      success: successCount > 0,
+      message: `Connected ${successCount} out of 2 platforms`,
+      results: results,
+    });
+  } catch (error) {
+    console.error("Error connecting all accounts:", error);
+    res.status(500).json({
+      error: "Failed to connect accounts",
+      message: error.message,
+    });
+  }
+});
+
+// Quick setup endpoint - automatically connects both platforms for demo/testing
+router.post("/quick-setup", authMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.user;
+    console.log("🚀 Quick setup for user:", userId);
+
+    const results = [];
+
+    // Auto-connect Instagram with global credentials
+    try {
+      const { data: existingInstagram } = await supabase
+        .from("social_accounts")
+        .select("*")
+        .eq("userId", userId)
+        .eq("platform", "INSTAGRAM")
+        .single();
+
+      if (!existingInstagram) {
+        // Get Instagram account info
+        const instagramInfo = await instagramAPI.getAccountInfo();
+
+        // Create Instagram account
+        const { data: instagramAccount, error: instagramError } = await supabase
+          .from("social_accounts")
+          .insert({
+            userId: userId,
+            platform: "INSTAGRAM",
+            accountId: instagramInfo.id,
+            accountName: instagramInfo.username,
+            accessToken: encrypt(instagramAPI.getAccessToken()),
+            isActive: true,
+          })
+          .select()
+          .single();
+
+        if (instagramError) {
+          results.push({
+            platform: "instagram",
+            success: false,
+            error: instagramError.message,
+          });
+        } else {
+          results.push({
+            platform: "instagram",
+            success: true,
+            account: instagramAccount,
+          });
+        }
+      } else {
+        results.push({
+          platform: "instagram",
+          success: true,
+          message: "Already connected",
+        });
+      }
+    } catch (error) {
+      results.push({
+        platform: "instagram",
+        success: false,
+        error: error.message,
+      });
+    }
+
+    // Auto-connect Twitter with global credentials
+    try {
+      const { data: existingTwitter } = await supabase
+        .from("social_accounts")
+        .select("*")
+        .eq("userId", userId)
+        .eq("platform", "TWITTER")
+        .single();
+
+      if (!existingTwitter) {
+        // Create Twitter account
+        const { data: twitterAccount, error: twitterError } = await supabase
+          .from("social_accounts")
+          .insert({
+            userId: userId,
+            platform: "TWITTER",
+            accountId: "1902337434228346880",
+            accountName: "Harii_2005",
+            accessToken: encrypt(process.env.TWITTER_ACCESS_TOKEN),
+            isActive: true,
+          })
+          .select()
+          .single();
+
+        if (twitterError) {
+          results.push({
+            platform: "twitter",
+            success: false,
+            error: twitterError.message,
+          });
+        } else {
+          results.push({
+            platform: "twitter",
+            success: true,
+            account: twitterAccount,
+          });
+        }
+      } else {
+        results.push({
+          platform: "twitter",
+          success: true,
+          message: "Already connected",
+        });
+      }
+    } catch (error) {
+      results.push({
+        platform: "twitter",
+        success: false,
+        error: error.message,
+      });
+    }
+
+    const successCount = results.filter((r) => r.success).length;
+
+    res.json({
+      success: successCount > 0,
+      message: `Quick setup complete: ${successCount}/2 platforms connected`,
+      results: results,
+    });
+  } catch (error) {
+    console.error("Error in quick setup:", error);
+    res.status(500).json({
+      error: "Quick setup failed",
+      message: error.message,
+    });
+  }
+});
+
+// Test posting to both platforms (no auth required for testing)
+router.post("/test-posting", async (req, res) => {
+  try {
+    const {
+      content,
+      imageUrl,
+      platforms = ["twitter", "instagram"],
+    } = req.body;
+
+    if (!content) {
+      return res.status(400).json({ error: "Content is required" });
+    }
+
+    console.log("🧪 Testing posting to platforms:", platforms);
+    console.log("Content:", content);
+    console.log("Image URL:", imageUrl);
+
+    const results = [];
+
+    // Test each platform
+    for (const platform of platforms) {
+      if (platform.toLowerCase() === "twitter") {
+        try {
+          const result = await twitterAPI.postTweet(content);
+          results.push({
+            platform: "twitter",
+            success: true,
+            result: result,
+            message: "Successfully posted to Twitter",
+          });
+          console.log("✅ Twitter post successful:", result);
+        } catch (error) {
+          console.error("❌ Twitter post failed:", error.message);
+          results.push({
+            platform: "twitter",
+            success: false,
+            error: error.message,
+            message: "Failed to post to Twitter",
+          });
+        }
+      }
+
+      if (platform.toLowerCase() === "instagram") {
+        if (!imageUrl) {
+          results.push({
+            platform: "instagram",
+            success: false,
+            error: "Image URL is required for Instagram",
+            message: "Instagram requires an image URL",
+          });
+          continue;
+        }
+
+        try {
+          const result = await instagramAPI.postToInstagram(
+            instagramAPI.getAccessToken(),
+            imageUrl,
+            content
+          );
+          results.push({
+            platform: "instagram",
+            success: true,
+            result: result,
+            message: "Successfully posted to Instagram",
+          });
+          console.log("✅ Instagram post successful:", result);
+        } catch (error) {
+          console.error("❌ Instagram post failed:", error.message);
+          results.push({
+            platform: "instagram",
+            success: false,
+            error: error.message,
+            message: "Failed to post to Instagram",
+          });
+        }
+      }
+    }
+
+    const successCount = results.filter((r) => r.success).length;
+    const totalCount = results.length;
+
+    res.json({
+      success: successCount > 0,
+      message: `Posted to ${successCount} out of ${totalCount} platforms`,
+      results: results,
+      summary: {
+        total: totalCount,
+        successful: successCount,
+        failed: totalCount - successCount,
+      },
+    });
+  } catch (error) {
+    console.error("Test posting error:", error);
+    res.status(500).json({
+      error: error.message,
+      message: "Test posting failed",
+    });
+  }
+});
+
+// Get connection status for platforms (no auth required - for frontend checks)
+router.get("/status", async (req, res) => {
+  try {
+    const status = {
+      instagram: { connected: false, account: null, error: null },
+      twitter: { connected: false, account: null, error: null },
+    };
+
+    // Check Instagram global connection
+    try {
+      const instagramTest = await instagramAPI.testConnection();
+      if (instagramTest.success) {
+        status.instagram.connected = true;
+        status.instagram.account = instagramTest.user;
+      } else {
+        status.instagram.error = instagramTest.error;
+      }
+    } catch (error) {
+      status.instagram.error = error.message;
+    }
+
+    // Check Twitter global connection
+    try {
+      const twitterUser = await twitterAPI.getUserInfo();
+      status.twitter.connected = true;
+      status.twitter.account = twitterUser;
+    } catch (error) {
+      status.twitter.error = error.message;
+    }
+
+    res.json({
+      success: true,
+      message: "Platform connection status retrieved",
+      status: status,
+    });
+  } catch (error) {
+    console.error("Error checking platform status:", error);
+    res.status(500).json({
+      error: "Failed to check platform status",
       message: error.message,
     });
   }
