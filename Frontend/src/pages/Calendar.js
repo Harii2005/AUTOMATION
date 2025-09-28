@@ -304,7 +304,7 @@ const Calendar = () => {
       scheduledAt: selectedDate
         ? moment(selectedDate).format("YYYY-MM-DDTHH:mm")
         : "",
-      platforms: ["twitter"],
+      platforms: [], // User selects which platforms to use
     });
     const [imagePreview, setImagePreview] = useState(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -447,6 +447,13 @@ const Calendar = () => {
       setIsSubmitting(true);
 
       try {
+        // Check if at least one platform is selected
+        if (formData.platforms.length === 0) {
+          addError("Please select at least one platform to post to.");
+          setIsSubmitting(false);
+          return;
+        }
+
         // First, check if user has connected social accounts for selected platforms
         const socialAccountsResponse = await api.get("/social");
         const connectedAccounts = socialAccountsResponse.data || [];
@@ -516,6 +523,12 @@ const Calendar = () => {
     const handlePostNow = async () => {
       if (!formData.content.trim()) {
         addError("Please enter content for your post");
+        return;
+      }
+
+      // Check if at least one platform is selected
+      if (formData.platforms.length === 0) {
+        addError("Please select at least one platform to post to.");
         return;
       }
 
